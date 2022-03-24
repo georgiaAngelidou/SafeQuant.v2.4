@@ -908,7 +908,6 @@ if(exists("sqaProtein")){
 	expset <- exprs(sqaProtein$eset)
 	expset <- log2(expset)
 
-	print (colnames(expset))
 	if ("file" %in% colnames(expDesign)){
 	  colnames(expset) <- expDesign$file
 	}else{
