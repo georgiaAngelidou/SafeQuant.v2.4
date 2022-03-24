@@ -6,6 +6,8 @@ The new feature includes supporting different file format and set the experiment
 
 ## Installation
 
+library("devtools")
+install_github("georgiaAngelidou/SafeQuant.v2.3.5", auth_token="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")
 
 
 **1. Install Dependecies**
