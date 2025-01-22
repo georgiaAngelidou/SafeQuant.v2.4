@@ -137,9 +137,6 @@ getAllEBayes <- function(eset=eset, adjust=F, log=T, method="pairwise", adjustFi
     pvalues <- data.frame(fitContrasts$p.value[,caseConditions])
     names(pvalues) <- caseConditions
 
-    #print(head(round(fitContrasts$coefficients[,caseConditions],3) == round(compRatios[,caseConditions],3)))
-    #print(cbind(fitContrasts$coefficients[,caseConditions[1]],compRatios[,caseConditions[1]]))
-
   }else{ 	#### PAIR-WISE COMPARISONS "pairwise" %in% method
 
     ## REASONING
@@ -225,9 +222,9 @@ getRatios <- function(eset, method="median", log2=T){
       }else{
         ratios <- cbind(ratios,apply(rTmp,1,median))
       }
-    }else{ # non-paired 
+    }else{ # non-paired
       if(log2){
-        ratios <- cbind(ratios,apply(log2(eCase),1,method, na.rm=T) - apply(log2(eCtrl),1,method, na.rm=T))
+        ratios <- cbind(ratios,log2(apply(eCase,1,method, na.rm=T)) - log2(apply(eCtrl,1,method, na.rm=T)))
       }else{
         ratios <- cbind(ratios,apply(eCase,1,method, na.rm=T) /	apply(eCtrl,1,method, na.rm=T))
       }
@@ -239,7 +236,6 @@ getRatios <- function(eset, method="median", log2=T){
   }else{
     names(ratios) <- caseConditions
   }
-
   return(ratios)
 }
 
@@ -374,8 +370,7 @@ getRTNormFactors <- function(eset, minFeaturesPerBin=100){
   #print (apply(log2(exprs(eset)),1,mean,na.rm=T))
 
   ratios <- log2(exprs(eset)) - apply(log2(exprs(eset)),1,mean,na.rm=T)
-  #print (head(ratios, 1))
-
+  
   ### get median ratio per minute bin
   roundedRT <- round(fData(eset)$retentionTime)
   rtBin <- sort(unique(round(fData(eset)$retentionTime)))
@@ -460,6 +455,7 @@ rtNormalize <- function(eset,rtNormFactors){
 #' @references NA
 #' @examples print("No examples")
 getGlobalNormFactors <- function(eset, method="median"){
+
   if("sum" %in% method){
     method <- "sum"
   }else if ("mean" %in% method){
@@ -468,8 +464,8 @@ getGlobalNormFactors <- function(eset, method="median"){
     method <- "median"
   }
   sel <- rep(T,nrow(eset))
-  #print (head(exprs(eset)))
-  #quit()
+
+
   ### check if isNormAnchor and isFiltered columns are defined, if -> get normalization factors from nonFiltered anchor proteins
   if(!is.null(fData(eset)$isNormAnchor) & !is.null(fData(eset)$isFiltered)){
 
@@ -490,8 +486,9 @@ getGlobalNormFactors <- function(eset, method="median"){
 
   rawDataIdx = apply(data.frame(exprs(eset)[sel,]),2, FUN=method, na.rm=T)
 
+
+
   normFactors = as.numeric(rawDataIdx[1]) / as.numeric(rawDataIdx)
-  
 
   return(normFactors)
 
@@ -538,21 +535,18 @@ globalNormalize = function(eset,globalNormFactors){
 sqNormalize <- function(eset, method="global"){
 
   esetNorm <- eset
-  #print (esetNorm@experimentData)
 
-  
   if("global" %in% method){
     globalNormFactors <- getGlobalNormFactors(esetNorm,method=method)
     ### add normalization factors to ExpressionSet
     pData(esetNorm)$globalNormFactors <- globalNormFactors
     esetNorm <- globalNormalize(esetNorm,globalNormFactors)
-    
+
   }
+
   if("rt" %in% method){
 
     rtNormFactors <- getRTNormFactors(esetNorm, minFeaturesPerBin=100)
-    #print (head(rtNormFactors,1))
-    #quit()
     esetNorm <- rtNormalize(esetNorm,rtNormFactors)
 
   }
@@ -571,7 +565,6 @@ sqNormalize <- function(eset, method="global"){
   #		warning("No normalization performed")
   #		print( apply(exprs(esetNorm),2,median,na.rm=T))
   #	}
-
   return(esetNorm)
 
 }
@@ -595,7 +588,6 @@ getSignalPerCondition <- function(eset,method="median"){
 
   for(cond in conditionNames){
     condMatch <-  cond== pData(eset)$condition
-    #print (exprs(eset))
     perCondSignal <- cbind(perCondSignal,apply(subset(exprs(eset),select=which(condMatch)),1,method,na.rm=T))
   }
   names(perCondSignal) <- conditionNames
@@ -721,17 +713,17 @@ getIBAQEset <- function(eset
   # get number of detectable peptides per protein
   nbPeptides <- vector(length=nrow(eset))
   i <- 0
+
   for(i in 1:nrow(eset)){
-
+    # get the information of the individual level for each protein entry in the file
     ac <- as.character(fData(eset)$proteinName[i])
-
     ### keep first listed entry sp|P04049|RAF1_HUMAN;sp|P15056|BRAF_HUMAN  -> sp|P04049|RAF1_HUMAN
     #ac <- gsub("\\;.*","",ac)
-
     nbPep <- NA
     if( !is.null(proteinDB[[ac]]) ){
+      # The number of the theoretical peptides that are matching the peptide length parameters
       nbPep <- getNbDetectablePeptides(getPeptides(proteinDB[[ac]],proteaseRegExp=proteaseRegExp,nbMiscleavages=nbMiscleavages),peptideLength=peptideLength)
-    }else{
+      }else{
       warning("WARN: ",ac," NOT FOUND IN PROTEIN DATABASE")
       #cat("WARN: ",ac," NOT FOUND IN PROTEIN DATABASE\n")
     }
@@ -874,10 +866,6 @@ rollUpDT <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinN
 
     #rolledFDataOld <- data.frame(DT[, lapply(.SD, .getFirstEntry), by=idx, .SDcols=selCol],row.names=rownames(rolledAssayData))[,2:(length(selCol)+1)]
     rolledFData <- data.frame(DT[, lapply(.SD, .getFirstEntry), by=idx, .SDcols=selCol],row.names=rownames(rolledAssayData))[,names(fData(eset))]
-
-    #		print(names(rolledFData))
-    #		print("")
-    #		print(names(rolledFDataOld))
   }
 
   ### concatenate allAccessions
@@ -996,7 +984,6 @@ getFTestPValue = function(eset, adjust=F, log=T){
 
   # if no condition has replicates return NA's
   if(max(table(pData(eset)$condition)) == 1){
-    #print ('I am inside in this little loop')
     pValues = rep(NA,nrow(eset))
     names(pValues) = rownames(eset)
     return(pValues)
@@ -1032,14 +1019,13 @@ rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinNam
 
   ### apply filter
   eset <- eset[!fData(eset)$isFiltered,]
-
   # create rollup index (row names)
   if(length(featureDataColumnName) > 1 ){
     rnames = do.call(paste, c(fData(eset)[featureDataColumnName] , sep="_"))
+
   }else{
     rnames = fData(eset)[,featureDataColumnName]
   }
-
   # rollup feature data
 
   # add column of zero scores if no scores
@@ -1056,8 +1042,11 @@ rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinNam
                                                            ,nbFeatures = sum(nbFeatures)
   )
 
+
   ### get fData of highest scoring row per rollUP level (do not include NA_IMP colummns)
   rolledFData = data.frame(fData(eset)[fdSummary$idx, !(colnames(fData(eset)) %>% grepl("^NA_IMP_[CI]NT\\.",.)) ],  row.names=fdSummary$rnames)
+
+
 
   # replace idScore column, by summed score, drop idScore column if all 0
   if(!all(fdSummary$idScore == 0)) rolledFData$idScore=fdSummary$idScore
@@ -1066,8 +1055,6 @@ rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinNam
 
   ### set peptides per protein
   rolledFData$nbPeptides <- getNbPeptidesPerProtein(eset)[as.character(rolledFData$proteinName)]
-  #print(head(rolledFData))
-
 
   # drop index and rnames columns
   rolledFData = rolledFData[, !(names(rolledFData) %in% c("index","rnames"))   ]
@@ -1083,12 +1070,14 @@ rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinNam
 
   # rollup expression data
   df = data.frame(exprs(eset),rnames )
+
   if(method =="sum"){
 
     # add NA intensties if tracked in fData
     df = data.frame(df,  getImputationMatrix(eset), getImputationMatrix(eset,method="count") )
 
     eRP = summarise_all(group_by_(df , .dots="rnames"  ) , funs(sum(.,na.rm=T))  )
+
     # add imputed intensities to rolledFData and rolled intensites to eset
     eRPCol = 1:(ncol(eset)+1)
 
@@ -1149,8 +1138,9 @@ sqImpute = function(eset,method="gmin", rowmax=0.3){
   isNA = is.na(exprs(esetImp))
   if(sum(isNA) == 0) return(eset)
 
-
-  if(ncol(esetImp) < 6){
+  method = tolower(method)
+  
+  if(ncol(esetImp) < 6 && method != "ndist"){
     method="gmin"
     cat("INFO: sqImpute: method set to 'gmin'. nb. runs < 6\n")
   }
@@ -1196,7 +1186,7 @@ sqImpute = function(eset,method="gmin", rowmax=0.3){
     rowImp = apply(exprs(esetImp),1,min,  na.rm=T)/2
 
     exprs(esetImp) = exprs(esetImp) -  rowImp
-    
+
     exprs(esetImp)[  is.na(exprs(esetImp)) ] <- 0
     exprs(esetImp) = exprs(esetImp) +  rowImp
 
@@ -1267,6 +1257,7 @@ getImputationMatrix = function(eset, method="intensity"){
     m = exprs(eset)
     m[is.finite(exprs(eset)) | is.na(exprs(eset))] = 0
   }
+
   return(m)
 }
 
@@ -1344,3 +1335,17 @@ getNbRolledUpFeatures = function(eset, method = "vector"){
 }
 
 
+#'
+#' #' Get number rolled up features per row
+#' #' @param eset ExpressionSet
+#' #' @param method c("vector","matrix") default vector
+#' #' @return matrix
+#' #' @export
+#' #' @note  No note
+#' #' @details
+#' #' @seealso No note
+#' #' @examples print("No examples")
+#' deNormalize <- function(eset, method = "vector"){
+#'
+#'   return()
+#' }

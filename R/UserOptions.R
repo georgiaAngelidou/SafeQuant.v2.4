@@ -1,6 +1,6 @@
 # TODO: Add comment
 #
-# Author: erikahrne
+# Author: erikahrne, georgiaAngelidou
 ###############################################################################
 
 
@@ -17,40 +17,45 @@ option_list <- list(
 			or Scaffold Q+ (Raw Export, for TMT quant) .xls (REQUIRED)",
 		),
 		make_option(c("-o", "--outputDir"), type="character", default=NA,
-				help="I/O:  Results Output Directory [default FOLDER OF INPUTFILE]",
+				help=paste("I/O:  Results Output Directory ", red$bold("[default FOLDER OF INPUTFILE]"), sep = ""),
 		),
 
 		make_option(c("-l", "--resultsFileLabel"), type="character", default="SQ_Results",
-				help="I/O: results file directory [default %default]",
+				help=paste("I/O: results file directory ", red$bold("[default %default]"), sep = ""),
 		),
 
 		make_option(c("-f", "--fastaFile"), type="character", default="",
-				help="I/O:  Protein DB .fasta file [default ./]",
+				help="I/O:  Protein DB .fasta file " %+% red$bold("[default ./]"),
 		),
 
 		make_option(c("-p", "--scaffoldPTMSpectrumReportFile"), type="character", default="",
-				help="I/O:  Scaffold PTM Spectrum Report File [default ./]",
+				help="I/O:  Scaffold PTM Spectrum Report File " %+% red$bold("[default ./]"),
 		),
 
 		make_option(c("-d","--spreadsheetExportDelimiter"), type="integer", default=1,
-		            help="I/O: Spreadsheet Export Delimiter 1) <tab> 2) <,> [default %default]",
+		            help="I/O: Spreadsheet Export Delimiter 1) <tab> 2) <,> " %+% red$bold("[default %default]"),
     ),
+		make_option(c("-s", "--selectedProteinsList"), type="character", default="",
+		            help="I/O: List of Selected proteins to track their abundance through the different condition"),
+
+		make_option(c("--noPDF"), action="store_true", default= FALSE,
+		            help="O: When activated the PDF output is not created"),
 
 ### I/O END
 
 # FILTER (--F)
 		make_option(c("--FProteinAccessionSelection"), type="character", default=".",
-				help="FILTER: --FP Filter features by Accession Regular Expression [default %default] (all features kept)",
+				help="FILTER: --FP Filter features by Accession Regular Expression " %+% red$bold("[default %default]") %+% " (all features kept)",
 				metavar="Protein Accession Reg. expr."),
 
 		#### peptide analysis specfic
 		make_option(c("--FModificationSelection"), type="character", default="",
-				help="FILTER (LFQ PEP ONLY): --FM Only keep Peptides with modifications matching Regular Expression [default %default]
-				 (all features kept).",
+				help="FILTER (LFQ PEP ONLY): --FM Only keep Peptides with modifications matching Regular Expression " %+% red$bold("[default %default]") %+% "
+				(all features kept).",
 				metavar="modification name Reg. expr."),
 
 		make_option(c("--FFdrCutoff"), type="double", default=0.01,
-				help="FILTER (LFQ ONLY): --FF Identification level False Discovery Rate Cutoff.  [0-1] [default %default]",
+				help="FILTER (LFQ ONLY): --FF Identification level False Discovery Rate Cutoff.  [0-1] " %+% red$bold("[default %default]"),
 				metavar="Peptide/Protein FDR cutoff"),
 
 #		make_option(c("--FCoefficientOfVarianceMax"), type="double", default=Inf,
@@ -60,39 +65,39 @@ option_list <- list(
 
 		#### peptide analysis specfic
 		make_option(c("--FDeltaMassTolerancePrecursor"), type="character", default="AUTO SET",
-				help="FILTER (LFQ PEP ONLY): --FD Precursor mass Error Range filter (ppm) [default %default].
+				help="FILTER (LFQ PEP ONLY): --FD Precursor mass Error Range filter (ppm) " %+% red$bold("[default %default]") %+% ".
 				Peptide imports ONLY",
 				metavar="Mass Range [x,y]"),
 
 		#### protein analysis specfic
 		make_option(c("--FNumberOfPeptidesPerProteinMin"), type="integer", default=1,
-				help="FILTER: --FN Only include those proteins with at least x identified peptides [default %default]
+				help="FILTER: --FN Only include those proteins with at least x identified peptides " %+% red$bold("[default %default]") %+% "
 				Protein analysis ONLY.",
 				metavar="Number of peptides"),
 
 		#### peptide analysis specfic
 		make_option(c("--FSitesPerPeptide"), type="integer", default=99999,
-				help="FILTER: --FS Max Nb. Modifications Per Peptide [default Inf]
+				help="FILTER: --FS Max Nb. Modifications Per Peptide " %+% red$bold("[default Inf]") %+% "
 						Peptide analysis ONLY.",
 				metavar="Max Number of PTM sites Per Petptide"),
 
 		#### peptide analysis specfic
 		make_option(c("--FLengthPeptide"), type="integer", default=1,
-				help="FILTER: --FL Min Peptide Length (Nb. AA's) [default 1]
+				help="FILTER: --FL Min Peptide Length (Nb. AA's) " %+% red$bold("[default 1] ") %+% "
 						Peptide analysis ONLY.",
 				metavar="Min Peptide Length (>=)"),
 
 		####
 		make_option(c("--FExclusivePeptides"), action="store_true", default=FALSE,
-				help="FILTER: --FE Discard all peptides mapping to multiple protein entries [default %default]
+				help="FILTER: --FE Discard all peptides mapping to multiple protein entries " %+% red$bold("[default %default]") %+% "
 			Note that by default all peptides are used for quantification and assigned to proteins using
 			a Occam's Razor based algorithm.
 				"),
 
 		make_option(c("--FRatioCutOff"), type="double", default=1,
-				help="FILTER: --FR Intensity ratio cut-off. [default %default]",
+				help="FILTER: --FR Intensity ratio cut-off. " %+% red$bold("[default %default]"),
 				metavar="Intensity ratio cutoff"),
-    
+
     make_option(c("--extraOut"), action="store_true", default=FALSE,
             help="Provides extra information in the output File"),
 
@@ -103,8 +108,7 @@ option_list <- list(
 
 		# correct tmt ratios
 		make_option(c("--TAdjustRatios"), action="store_true", default=FALSE,
-				help="TMT: --TA Adjust TMT ratios using calibration mix proteins [default %default]
-						"),
+				help="TMT: --TA Adjust TMT ratios using calibration mix proteins " %+% red$bold("[default %default]")),
 
 # TMT (--T) END
 
@@ -112,23 +116,23 @@ option_list <- list(
 
 
   # Use median instead of median
-  make_option(c("--Median"), action="store_true", default=FALSE, 
+  make_option(c("--Median"), action="store_true", default=FALSE,
             help="The return values will correspond to the median values"
-  ), 
+  ),
 
-  make_option(c("--log2toI"), action="store_true", default=FALSE, 
+  make_option(c("--log2toI"), action="store_true", default=FALSE,
             help="transforms log2 values to their linear scale"
-  ), 
+  ),
 
 
 	make_option(c("--SAnchorProtein"), type="character", default=".",
-			help="STATISTICS: --SA Normalize Intensities by selected protein(s) Regular Expression
-			 [default %default] (use all proteins).",
+			help="STATISTICS: --SA Normalize Intensities by selected protein(s) Regular Expression " %+% "
+			" %+% red$bold("[default %default]") %+% " (use all proteins).",
 			metavar="Protein Accession Reg. expr."),
 
   make_option(c("--SMissingValuesImutationMethod"), type="character", default="nDist",
-            help="STATISTICS: --SM 'ppca', 'knn','gMin','lMin','gMean,'lMean', 'nDist', 
-            [default %default] (use all proteins).",
+            help="STATISTICS: --SM 'ppca', 'knn','gMin','lMin','gMean,'lMean', 'nDist', " %+% "
+              " %+% red$bold("[default %default]") %+% " (use all proteins).",
             metavar=" ppca: probabilistic pca (+ gMin, if not enough data)
                             knn: k-nearest neighbour (+ gMin, if not enough data)
                             gMin: global minimum
@@ -141,13 +145,13 @@ option_list <- list(
 
   make_option(c("--SNonPairWiseStatTest"), action="store_true", default=FALSE,
             help="STATISTICS: --SN non pairwise eBayes moderated t-statistic p-values.
-              I.e. variance is pooled, per protein/peptide, across all runs of the study [default %default]"),
+              I.e. variance is pooled, per protein/peptide, across all runs of the study " %+% red$bold("[default %default]")),
 
   make_option(c("--SPvalueInclude"), action="store_true", default=FALSE,
-            help="STATISTICS: --SP output eBayes moderated t-statistic p-values [default %default]"),
+            help="STATISTICS: --SP output eBayes moderated t-statistic p-values " %+% red$bold("[default %default]")),
 
 	make_option(c("--SRawDataAnalysis"), action="store_true", default=FALSE,
-			help="STATISTICS: --SR No data normalization [default %default]"),
+			help="STATISTICS: --SR No data normalization " %+% red$bold("[default %default]")),
 
 # STATISTICS (--S) END
 
@@ -159,13 +163,13 @@ option_list <- list(
 					   condition1 (REF) : channel 1,2,3
 					   condition2: channel 4,5,6
 					Note: for 10-plex default is "1,4,7,10:2,5,8:3,6,9"
-					[default %default]'),
+					' %+% red$bold('[default %default]')),
 
 	make_option(c("--EProteinQuantOff"), action="store_false", default=TRUE,
-			help='EXPERIMENTAL DESIGN: --EP Disable Protein Level Quantification [default %default]'),
+			help='EXPERIMENTAL DESIGN: --EP Disable Protein Level Quantification ' %+% red$bold('[default %default]')),
 
 	make_option(c("--ECorrelatedSamples "), action="store_true", default=FALSE,
-			help='EXPERIMENTAL DESIGN: --EC Apply "paired" statistical tests [default %default]'),
+			help='EXPERIMENTAL DESIGN: --EC Apply "paired" statistical tests ' %+% red$bold('[default %default]')),
 
 # EXPERIMENTAL DESIGN (--E) END
 
@@ -173,33 +177,34 @@ option_list <- list(
 
 	make_option(c("--PQvalueCutOff"), type="double", default=0.01,
 			help="PDF-REPORT: --PQ Qvalue cut-off used for graphics.
-			High-lighting features with a qval < specified value. [0-1] [default %default]",
+			High-lighting features with a qval < specified value. [0-1] " %+% red$bold("[default %default]"),
 			metavar="Differential expression qvalue cutOff"),
 
 # ADDITIONAL-REPORTS (--A)
 	make_option(c("--ARDataFile"), action="store_true", default=FALSE,
-		help="ADDITIONAL-REPORTS: --AR Save R objects in 'label'.RData file [default %default]"),
+		help="ADDITIONAL-REPORTS: --AR Save R objects in 'label'.RData file " %+% red$bold("[default %default]")),
 
 	make_option(c("--AIbaq"), action="store_true", default=FALSE,
-			help="ADDITIONAL-REPORTS : --AI add iBAQ values to results spreadsheet. [default %default]"),
+			help="ADDITIONAL-REPORTS : --AI add iBAQ values to results spreadsheet. " %+% red$bold("[default %default]")),
 
 	make_option(c("--ATop3"), action="store_true", default=FALSE,
-			help="ADDITIONAL-REPORTS : --AT add Top3 values to results spreadsheet. [default %default]"),
+			help="ADDITIONAL-REPORTS : --AT add Top3 values to results spreadsheet. " %+% red$bold("[default %default]")),
 
 	make_option(c("--AQC"), action="store_true", default=FALSE,
-			help="ADDITIONAL-REPORTS : --AQ adds additional QC plots to .pdf report [default %default]"),
+			help="ADDITIONAL-REPORTS : --AQ adds additional QC plots to .pdf report " %+% red$bold("[default %default]")),
+
+
 
 # ADDITIONAL-REPORTS (--A) END
 
 # TEST (peptide analysis specific)
 	make_option(c("-t", "--test"), action="store_true", default=FALSE,
-			help="TEST: test option, include first 2000 entries only [default %default]
+			help="TEST: test option, include first 2000 entries only " %+% red$bold("[default %default]") %+% "
 			Peptide analysis ONLY."),
 # TEST END
 	make_option(c("-v", "--verbose"), action="store_true", default=FALSE,
-			help="Print extra output [default %default]")
+			help="Print extra output " %+% red$bold("[default %default]"))
 	)
-
 
 #' Read User Specified Command Line Options
 #' @param version Safequant version number
@@ -211,7 +216,7 @@ option_list <- list(
 #' @references NA
 #' @examples print("No examples")
 getUserOptions <- function(version=version){
-
+  # alert <- combine_styles("bold", "red4", "bgCyan")
 	epilogue <- "Examples:
 	Progenesis LFQ Protein Quant:
 	>Rscript safeQuant.R -i /path/to/peptide_measurment.csv
@@ -222,20 +227,9 @@ getUserOptions <- function(version=version){
 	Progenesis LFQ Phospho Quant:
 	>Rscript safeQuant.R -i /path/to/peptide_measurment.csv -f /path/to/proteins.fasta --FM phospho --FS 3 --EP
 
-	Scaffold Q+ TMT Protein Quant:
-	>Rscript safeQuant.R -i /path/to/Raw_Export.xls --EX 1,2,3,4:5,6,7:8,9,10
-
-	Scaffold Q+ TMT  PEPTIDE PTM Quant (PHOSHO):
-	>Rscript safeQuant.R -i /path/to/Raw_Export.xls -p /path/to/Spectrum_Export_Scaffold_PTM.xls --EX 1,2,3,4:5,6,7:8,9,10 --FM phospho --FS 3 -f /path/to/proteins.fasta
-	
 	MaxQuant Protein Quant with Experinental Design File:
-	>
-	
-	Spectronant Protein Quant with Experimental Design File :
-	>
-	
-	DIA-NN Protein Quant with Experimental Design File:
-	>
+	>Rscript safeQuant.R -i /path/to/proteinGroups.txt --EX experimentalDesignTemplate.txt
+
 	"
 
 	# get command line options, if help option encountered print help and exit,
@@ -308,6 +302,15 @@ getUserOptions <- function(version=version){
 	  userOptions$sSheetExportDelimiter = ","
 	}
 
+
+	#I/O: Selected Proteins List
+	userOptions$selectedProteinsList <- cmdOpt$selectedProteinsList
+	if(userOptions$selectedProteinsList != "" && !file.exists(userOptions$selectedProteinsList)){
+	  cat("ERROR. File does not exist:",userOptions$selectedProteinsListe,"\n")
+	  q(status=-1)
+	}
+
+
 # I/O END
 
 # FILTER (--F)
@@ -378,7 +381,9 @@ getUserOptions <- function(version=version){
 		cat("ERROR. ratioCutoff must be > 1. You specified",userOptions$ratioCutOff,"\n")
 		q(status=-1)
 	}
-	
+
+	#FILTER: Exclude the PDF file as an output
+	userOptions$noPDF <- cmdOpt$noPDF
 	#FILTER: Output file
 	userOptions$extra_info <- cmdOpt$extraOut
 
@@ -386,16 +391,16 @@ getUserOptions <- function(version=version){
 
 # TMT
 	userOptions$TAdjustRatios <- cmdOpt$TAdjustRatios
-	
+
 
 # TMT END
 
 
 # STATISTICS
-	
+
 	#STATISTICS: median values
 	userOptions$medianInfo <- cmdOpt$Median
-	
+
 	#STATISTICS: transform the i values to the log2
 	userOptions$log2_i <- cmdOpt$log2toI
 
@@ -508,7 +513,7 @@ getUserOptions <- function(version=version){
 #6 Condition 2     FALSE
 
 # Experimental Design File Format should have the following 4 columns:
-# Name: the names of the column where the quantify values are located	
+# Name: the names of the column where the quantify values are located
 # Experiment: Condition Replication
 # Groups: General Condition
 # File: C for control files and T for files which should included in the analysis
@@ -531,10 +536,10 @@ getUserOptions <- function(version=version){
 #' @references NA
 #' @examples print("No examples")
 expDesignTagToExpDesign <- function(tag, expDesignDefault, ...){
-  
+
   if (str_detect(tag, ".txt$")){
     expDesign <- expDesignTagToExpDesign_file_2(tag, ...)
-    
+
     #(expDesign) <- rownames(expDesignDefault)[as.numeric(rownames(expDesign))]
   }else{
 	sampleOrder <- as.numeric(unlist(strsplit(tag,"[\\,\\:]")))
@@ -578,13 +583,13 @@ expDesignTagToExpDesign <- function(tag, expDesignDefault, ...){
 			#stop("SPLIT")
 		}
 	}
-  
+
 	### make sure a single condirion has not been split into two
 	# I.e there should be just as many conditions before and anfter retreival of orginial condition names
 	if(length(unique(	expDesign$condition)) == length(unique(	 expDesignDefault[rownames(expDesign),]$condition)) ){
 		# get original condition names
 		expDesign$condition <- expDesignDefault[rownames(expDesign),]$condition
-	
+
 	}
   }
 	return(expDesign)
@@ -600,45 +605,22 @@ expDesignTagToExpDesign <- function(tag, expDesignDefault, ...){
 #' @note  No note
 #' @details  Example Files for the different file formats
 #' MaxQuant File:
-#' Name	Experiment	Groups	File
+#' Name	Experiment	Groups	Type
 #' LFQ intensity 6892 - Calcium -1	6892 - Calcium -1	6892 - Calcium	C
 #' LFQ intensity 6892 + Calcium -1	6892 + Calcium -1	6892 + Calcium	T
 #' LFQ intensity 7648 - Calcium -1	7648 - Calcium -1	7648 - Calcium	T
 #' LFQ intensity 7648 - Calcium -2	7648 - Calcium -2	7648 - Calcium	T
-#'
-#' Spectronant File:
-#' Name	Experiment	Groups	File
-#  [1] srRNA-1-8-49w.raw.PG.Quantity	C2_1	C2	T
-#  [2] srRNA-1-7-49w.raw.PG.Quantity	C2_2	C2	T
-#  [3] srRNA-1-6-49w.raw.PG.Quantity	C2_3	C2	T
-#  [4] srRNA-1-5-49w.raw.PG.Quantity	C2_4	C2	T
-#  [5] srRNA-1-4-49w.raw.PG.Quantity	C1_1	C1	C
-#  [6] srRNA-1-3-49w.raw.PG.Quantity	C1_2	C1	C
-#  [7] srRNA-1-2-49w.raw.PG.Quantity	C1_3	C1	C
-#  [8] srRNA-1-1-49w.raw.PG.Quantity	C1_4	C1	C
-#'
-#'
-#' DIA-NN File:
-#' Name	Experiment	Groups	File
-#' Quantity.EPS-5-1reDIA.raw	WT_01	WT	C
-#' Quantity.EPS-5-2re-DIA.raw	WT_02	WT	C
-#' Quantity.EPS-5-3re-DIA.raw	WT_03	WT	C
-#' Quantity.EPS-5-4re-DIA.raw	WT_04	WT	C
-#' Quantity.EPS-5-5re-DIA.raw	d_epsX_01	d_expsX	T
-#' Quantity.EPS-5-6re-DIA.raw	d_epsX_02	d_expsX	T
-#' Quantity.EPS-5-7re-DIA.raw	d_epsX_03	d_expsX	T
-#' Quantity.EPS-5-8re-DIA.raw	d_epsX_04	d_expsX	T
 #'
 #' @references NA
 #' @examples print("No examples")
 expDesignTagToExpDesign_file_2 <- function(t, ...){
   f_t <- list(...)
   f_n <- names(list(...))
-  
+
   df_exp_design <- read.table(t, header = TRUE,  sep = "\t",  quote = "",  as.is = TRUE)
 
   #df_exp_design <- read.table(t,header = TRUE,  sep = "\t",  quote = "",  as.is = TRUE, fileEncoding = "UTF-16LE")
-  expD <- df_exp_design[df_exp_design$File %in% c('C', 'T'), c('Groups', 'File', 'Name', 'Experiment')]
+  expD <- df_exp_design[df_exp_design$Type %in% c('C', 'T'), c('Groups', 'Type', 'Name', 'Experiment')]
 
   names(expD) <- c('condition', 'isControl', 'file', 'c_Name')
   expD <- expD[
@@ -647,22 +629,21 @@ expDesignTagToExpDesign_file_2 <- function(t, ...){
   expD$isControl[expD$isControl == 'T'] <- FALSE
   expD$isControl[expD$isControl == 'C'] <- TRUE
   expD$isControl <- as.logical(expD$isControl)
-
   if ('file' %in% f_n){
     if (f_t$fileT == "MaxQuantProteinGroup"){
       res <- read.csv(f_t$file,allowEscapes=T, check.names=F,sep="\t")
       r <- colnames(res)
       ### get
       # Note 20210906: may need to ad method control here
-      s_r <- str_replace_all(r[grepl("^LFQ",r)], "LFQ intensity ", "" ) 
+      s_r <- str_replace_all(r[grepl("^LFQ",r)], "LFQ intensity ", "" )
       expD$f_pos <- match(expD$c_Name,s_r)
-      
+
       expD$o_pos <- rownames(expD)
       rownames(expD) <- expD$f_pos
-    
+
       expDesign <- expD[order(-expD$isControl, as.numeric(expD$o_pos)),]
 
-    }else if(f_t$fileT == "SpectronantProteinGroup"){
+    }else if(f_t$fileT == "SpectronautProteinGroup"){
       f_info <- gsub(".*\\.", "", f_t$file)
       if (f_info == "csv"){
         #res <- read.csv(f_t$file,allowEscapes=T, check.names=F,sep=",")
@@ -691,27 +672,23 @@ expDesignTagToExpDesign_file_2 <- function(t, ...){
       rownames(expD) <- expD$f_pos
       expDesign <- expD[order(-expD$isControl, as.numeric(expD$o_pos)),]
 
-    }else if (f_t$fileT == "DiaNNProteinGroup"){
+    }else if (f_t$fileT %in% c("DiaNNProteinGroup", "DIANN_Peptide")){
 
       res <- read.table(file = f_t$file, sep = '\t', header = TRUE, quote = "\"")
       #res <- read.table(file = f_t$file)
       r <- colnames(res)
-
       if (sum(grepl("^Quantity\\.", r)) > 0){
         #s_r <- str_replace_all(r[grepl(".Quantity",r)], "Quantity", "")
         s_r <- r[grepl("^Quantity\\.",r)]
       }
-      
+
       for (i in 1:length(rownames(expD))){
-        expD[i, 'f_pos'] <- match(gsub('-', '.', expD[i, 'file']), s_r)
-        # for (o_n in s_r){
-        #   if (gsub('-', '.', expD[i, 'file']) == o_n){
-        #     print (o_n)
-        #     
-        #     quit()
-        #   }
-        # }
-        # quit()
+        if (gsub('-', '.', expD[i, 'file']) %in% s_r){
+          expD[i, 'f_pos'] <- match(gsub('-', '.', expD[i, 'file']), s_r)
+        }else{
+          stop("ERROR: expDesignTagToExpDesign, INVALID COLUMN NAME IN THE EXPERIMENTAL FILE ",expD[i, 'file'],"\n")
+        }
+
       }
       expD$o_pos <- rownames(expD)
       rownames(expD) <- expD$f_pos
@@ -722,6 +699,6 @@ expDesignTagToExpDesign_file_2 <- function(t, ...){
 
   }
   return(expDesign)
-  
+
 }
 

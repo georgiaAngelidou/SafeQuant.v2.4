@@ -1,6 +1,6 @@
 # TODO: Add comment
 #
-# Author: erikahrne
+# Author: erikahrne, georgiaAngelidou
 ###############################################################################
 
 # set filter, filer = data.frame all TRUE/FALSE
@@ -209,6 +209,7 @@ addIdQvalues <- function(eset=eset){
 
 	### only calculate q-values for non-filtered features
 	sel <- rep(T,nrow(eset))
+
 	if(!is.null(fData(eset)$isFiltered)){
 		sel <- !fData(eset)$isFiltered
 	}
@@ -218,6 +219,7 @@ addIdQvalues <- function(eset=eset){
 	# if ptm column exist seperate calculate qvals sepearately for modif and nomd features
 	if(!is.null(fData(eset)$ptm)){
 		isMod <- nchar(as.character(fData(eset)$ptm)) > 0
+
 
 		# get qvalues for modified features
 		if(sum(isMod  & sel ) > 0){
@@ -233,7 +235,6 @@ addIdQvalues <- function(eset=eset){
 
 	# add q-value vector
 	fData(eset)$idQValue <- idQValue
-  
 	return(eset)
 
 }

@@ -30,11 +30,9 @@ COLORS <- as.character(c(
 		,fileType=fileType
 		,sqaPeptide=sqaPeptide
 		,sqaProtein=sqaProtein){
-
 	# HACK TO avoid check error. See function call in safeQuant.R @TODO re-structure this messsy function
-	if(is.na(sqaPeptide)){rm(sqaPeptide)}
-	if(is.na(sqaProtein)){rm(sqaProtein)}
-
+  if(class(sqaPeptide) == "numeric"){rm(sqaPeptide)}
+  if(class(sqaProtein) == "numeric"){rm(sqaProtein)}
 	######################## OVERVIEW PLOT
 	fdr <-userOptions$fdrCutoff
 	nbPSM <- sum(!fData(esetNorm)$isFiltered,na.rm=T)
@@ -47,26 +45,23 @@ COLORS <- as.character(c(
 	yPos <- 1
 
 	 # Here is the area which is aply for the MaxQuant
-	
-	if(fileType != "ProgenesisProtein" & fileType != "MaxQuantProteinGroup" & fileType != "SpectronantProteinGroup" & fileType != "DiaNNProteinGroup"){
-		text(xPos,yPos,paste(nbPSM," PSM"),cex=cex, pos=4)
-		yPos <- yPos - 0.5
-
-	}else if(fileType == "MaxQuantProteinGroup"){
-	  maxQ <- fData(esetNorm)
-	  nbPSM <-sum(maxQ[maxQ$isFiltered,]$nbPeptides_g)
+	if(fileType != "ProgenesisProtein" & fileType != "MaxQuantProteinGroup" & fileType != "SpectronautProteinGroup" & fileType != "DiaNNProteinGroup"){
 	  text(xPos,yPos,paste(nbPSM," PSM"),cex=cex, pos=4)
 	  yPos <- yPos - 0.5
 	}
+	# }else if(fileType == "MaxQuantProteinGroup"){
+	#   maxQ <- fData(esetNorm)
+	#   nbPSM <-sum(maxQ[maxQ$isFiltered,]$nbPeptides_g)
+	#   text(xPos,yPos,paste(nbPSM," PSM"),cex=cex, pos=4)
+	#   yPos <- yPos - 0.5
+	# }
 
 	if(exists("sqaPeptide")){
-
 		isMod <- nchar(as.character(fData(sqaPeptide$eset)$ptm)) > 0
 		nbPeptides <- sum(!fData(sqaPeptide$eset)$isFiltered,na.rm=T)
 		nbUnModPeptides <- sum(!fData(sqaPeptide$eset[!isMod,])$isFiltered,na.rm=T)
 		nbModPeptides <- sum(!fData(sqaPeptide$eset[isMod,])$isFiltered,na.rm=T)
 		nbProteins <-  length(unique(fData(sqaPeptide$eset)[!fData(sqaPeptide$eset)$isFiltered,]$proteinName))
-
 		text(xPos,yPos,paste(nbPeptides, " PEPTIDES"),cex=cex, pos=4)
 		yPos <- yPos - 0.25
 		text(xPos+0.5,yPos,paste(nbUnModPeptides," UN-MOD."),cex=cex, pos=4)
@@ -74,26 +69,109 @@ COLORS <- as.character(c(
 		text(xPos+0.5,yPos,paste(nbModPeptides," MOD."),cex=cex, pos=4)
 		yPos <- yPos - 0.5
 
-
-
 	}else if("peptide" %in% names(fData(esetNorm))) { ### TMT export
-		text(xPos,yPos,paste(length(unique(fData(esetNorm)$peptide))," PEPTIDES" ),cex=cex, pos=4)
-		yPos <- yPos - 0.5
+	  text(xPos,yPos,paste(length(unique(fData(esetNorm)$peptide))," PEPTIDES" ),cex=cex, pos=4)
+	  yPos <- yPos - 0.5
 	}
 
 	if(exists("sqaProtein")){
-		nbProteins <- sum(!fData(sqaProtein$eset)$isFiltered,na.rm=T)
+	  nbProteins <- sum(!fData(sqaProtein$eset)$isFiltered,na.rm=T)
+	  if (fileType %in% c("DiaNNProteinGroup")){
+	    nrmeasurePrecursors_c <- colnames(fData(sqaProtein$eset))[grepl("NrOfPrecursorsMeasured", colnames(fData(sqaProtein$eset)))]
+	    naImputatedCnt_c <- colnames(fData(sqaProtein$eset))[grepl("NA_IMP_CNT", colnames(fData(sqaProtein$eset)))]
+	  }else if (fileType %in%  c("MaxQuantProteinGroup")){
+	    if (length(colnames(fData(sqaProtein$eset))[grepl("^Razor ", colnames(fData(sqaProtein$eset)))])){
+	      nrmeasurePrecursors_c <- colnames(fData(sqaProtein$eset))[grepl("^Razor ", colnames(fData(sqaProtein$eset)))]
+	    }else{
+	      nrmeasurePrecursors_c <- colnames(fData(sqaProtein$eset))[grepl("razor_unique_peptides", colnames(fData(sqaProtein$eset)))]
+	    }
+	    naImputatedCnt_c <- colnames(fData(sqaProtein$eset))[grepl("NA_IMP_CNT", colnames(fData(sqaProtein$eset)))]
+	  }else if(fileType %in% c("DIANN_Peptide")){
+	    # nrmeasurePrecursors_c <- colnames(fData(sqaProtein$eset))[grepl("razor_unique_peptides", colnames(fData(sqaProtein$eset)))]
+	    naImputatedCnt_c <- colnames(fData(sqaProtein$eset))[grepl("NA_IMP_CNT", colnames(fData(sqaProtein$eset)))]
+	  }
+	}
+	if (exists("sqaPeptide")){
+	  if(fileType == "DIANN_Peptide"){
+	    nrmeasurePrecursors_pc <- colnames(fData(sqaPeptide$eset))[grepl("NrOfPrecursors", colnames(fData(sqaPeptide$eset)))]
+	  }
 	}
 	text(xPos,yPos,paste(nbProteins," PROTEINS"),cex=cex, pos=4)
 	par(mar=c(5.1,4.1,4.1,2.1))
 	######################## OVERVIEW PLOT END
+  #### NrOfMeasured Precursors
+
+	if(fileType %in% c("DiaNNProteinGroup")){
+	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
+	  measuredPrecursors <- colSums(fData(sqaProtein$eset)[!(fData(sqaProtein$eset)$isFiltered), nrmeasurePrecursors_c])
+	  names(measuredPrecursors) <- str_replace(names(measuredPrecursors), "NrOfPrecursorsMeasured.", "")
+	  measuredPrecursors <- measuredPrecursors[str_replace_all(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", ".")]
+	  bp <- barplot2(measuredPrecursors, ylab = "Total # of Precursors Measured", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	}else if (fileType %in% c("MaxQuantProteinGroup")){
+
+	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
+	  measuredPrecursors <- colSums(fData(sqaProtein$eset)[!(fData(sqaProtein$eset)$isFiltered), nrmeasurePrecursors_c])
+	  if (length(colnames(fData(sqaProtein$eset))[grepl("^Razor ", colnames(fData(sqaProtein$eset)))])){
+	    names(measuredPrecursors) <- rownames(expDesign)
+	  }else{
+	    names(measuredPrecursors) <- str_replace(names(measuredPrecursors), "razor_unique_peptides.", "")
+	  }
+	  # measuredPrecursors <- measuredPrecursors[pData(sqaProtein$eset)$c_Name]
+	  # names(measuredPrecursors) <- pData(sqaProtein$eset)$file
+	  bp <- barplot2(measuredPrecursors, ylab = "Total # of Razor and unique peptides", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	}else if (fileType %in% c("DIANN_Peptide")){
+	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
+	  measuredPrecursors <- colSums(fData(sqaPeptide$eset)[!(fData(sqaPeptide$eset)$isFiltered), nrmeasurePrecursors_pc])
+	  names(measuredPrecursors) <- str_replace(str_replace(names(measuredPrecursors), "NrOfPrecursors.", ""), ".raw", "")
+	  measuredPrecursors <- measuredPrecursors[str_replace(str_replace(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", "."), "-", ".")]
+	  bp <- barplot2(measuredPrecursors, ylab = "Total # of Razor and unique peptides", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	}
+	###### Nr of Measured Proteins before imputation
+	if(fileType == "DiaNNProteinGroup"){
+	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
+	  naImpCnt <- colSums(fData(sqaProtein$eset)[!(fData(sqaProtein$eset)$isFiltered), naImputatedCnt_c])
+	  naImpCnt2 <- naImpCnt
+	  naImpCnt <- nbProteins - naImpCnt
+	  names(naImpCnt) <- str_replace(names(naImpCnt), "NA_IMP_CNT.", "")
+	  names(naImpCnt) <- str_replace(str_replace(pData(sqaProtein$eset)[pData(sqaProtein$eset)$f_pos == names(naImpCnt),]$file, "Quantity.", ""), ".raw", "")
+	  # naImpCnt <- naImpCnt[str_replace(str_replace(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", "."), "-", ".")]
+	  bp <- barplot2(naImpCnt, ylab = "Total # of Measured Proteins", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	  bp <- barplot2(naImpCnt2, ylab = "Total # of Imputated Values", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	}else if (fileType == "MaxQuantProteinGroup"){
+	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
+	  naImpCnt <- colSums(fData(sqaProtein$eset)[!(fData(sqaProtein$eset)$isFiltered), naImputatedCnt_c])
+	  naImpCnt2 <- naImpCnt
+	  naImpCnt <- nbProteins - naImpCnt
+	  bp <- barplot2(naImpCnt, ylab = "Total # of Measured Proteins", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	  bp <- barplot2(naImpCnt2, ylab = "Total # of Imputated Values", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	}else if(fileType == "DIANN_Peptide"){
+	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
+	  na_info <- fData(sqaProtein$eset)[!(fData(sqaProtein$eset)$isFiltered), naImputatedCnt_c]
+	  na_info[na_info > 0] <- 1
+	  naImpCnt <- colSums(na_info)
+	  naImpCnt2 <- naImpCnt
+	  naImpCnt <- nbProteins - naImpCnt
+	  names(naImpCnt) <- str_replace(str_replace(names(naImpCnt), "NA_IMP_CNT.", ""), ".raw", "")
+	  names(naImpCnt) <- str_replace(str_replace(pData(sqaProtein$eset)[pData(sqaProtein$eset)$f_pos == names(naImpCnt),]$file, "Quantity.", ""), ".raw", "")
+	  bp <- barplot2(naImpCnt, ylab = "Total # of Measured Proteins", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+	  bp <- barplot2(naImpCnt2, ylab = "Total # of Imputated Values", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
+	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+
+	}
 
 	### charge state
 	if("charge" %in% names(fData(esetNorm)) & (sum(!is.na(fData(esetNorm)$charge),na.rm=T)>0) ){
-		if(userOptions$verbose) cat("CHARGE STATE PLOT \n")
-		chargeTable <- table(fData(esetNorm)$charge[!fData(esetNorm)$isFiltered] )
-		barplot2(chargeTable, xlab="Charge State", ylab="PSM Counts", col="blue", plot.grid = TRUE, grid.col="lightgrey")
-
+	  if(userOptions$verbose) cat("CHARGE STATE PLOT \n")
+	  chargeTable <- table(fData(esetNorm)$charge[!fData(esetNorm)$isFiltered] )
+	  barplot2(chargeTable, xlab="Charge State", ylab="PSM Counts", col="blue", plot.grid = TRUE, grid.col="lightgrey")
 	}
 	if(exists("sqaPeptide")){
 		if(userOptions$verbose) cat("INFO: NB. MIS-CLEAVAGES PLOT \n")
@@ -103,40 +181,31 @@ COLORS <- as.character(c(
 		nbSel <-min(c(nbRows,500))
 		nbMCTable <- (table(getNbMisCleavages(fData(esetNorm)$peptide[sel][sample(nbRows,nbSel)] ))/nbSel)*100
 		barplot2(nbMCTable, xlab="Nb. Mis-cleavages", ylab="Peptide Counts (%)", col="blue", plot.grid = TRUE, grid.col="lightgrey")
-
 		### don't plot if many (more than 10) NA motifs (NA motid due to wrongly specified fasta)
 		if("motifX" %in% names(fData(sqaPeptide$eset)) & (sum(is.na(fData(sqaPeptide$eset)$motifX)) < 10 ) ){
-
 			if(userOptions$verbose) cat("INFO: MOTIF-X PLOT \n")
-			motifTable <- table(.getUniquePtmMotifs(sqaPeptide$eset,format=(fileType == "ScaffoldTMT")+1)$ptm)
-
+		  motifTable <- table(.getUniquePtmMotifs(sqaPeptide$eset,format=(fileType == "ScaffoldTMT")+1)$ptm)
 			if(nrow(motifTable) > 0){ # make sure some non NA motifs were found
-				bp <- barplot2(motifTable, ,ylab="Modif. Site Counts", col="blue", plot.grid = TRUE, xaxt="n", grid.col="lightgrey")
-				mtext(names(motifTable),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
+			  bp <- barplot2(motifTable, ,ylab="Modif. Site Counts", col="blue", plot.grid = TRUE, xaxt="n", grid.col="lightgrey")
+			  mtext(names(motifTable),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
 			}
-
 		}else{
-
 			if(fileType == "ScaffoldTMT"){
-
 				ptmTag <- as.character(fData(sqaPeptide$eset)$ptm)[!fData(sqaPeptide$eset)$isFiltered]
 				ptmTag[(nchar(ptmTag) == 0)] <- "Unmod"
 				ptmTag <- gsub("[0-9]","",unlist(strsplit(ptmTag,"\\, ")))
 				ptmTable <- table(ptmTag[!fData(sqaPeptide$eset)$isFiltered] )
-
 			}else{
 				### ptm PROGENSIS
 				ptmTag <- as.character(fData(sqaPeptide$eset)$ptm)[!fData(sqaPeptide$eset)$isFiltered]
 				ptmTag[nchar(ptmTag) == 0] <- "Unmod"
 				ptmTag <- gsub("\\[[0-9]*\\] {1,}","",unlist(strsplit(ptmTag,"\\|")))
 				ptmTable <- table(ptmTag[!fData(sqaPeptide$eset)$isFiltered] )
-
 			}
 			if(userOptions$verbose) cat("PTM PLOT \n")
 			#barplot2(ptmTable, ylab="Peptide Counts", col="blue", plot.grid = TRUE, las=2, grid.col="lightgrey", cex.names=0.7)
 			bp <- barplot2(ptmTable, ylab="Peptide Counts", col="blue", plot.grid = TRUE, xaxt="n", grid.col="lightgrey")
 			mtext(names(ptmTable),side=1,at=bp[,1], line=0, cex=0.6, las=2)
-
 		}
 
 		if("nbPtmsPerPeptide"  %in% names(fData(sqaPeptide$eset))){
@@ -162,12 +231,12 @@ COLORS <- as.character(c(
 
 	}
 
-	
-	# Below code will be temporary been mark as hidden for the SpectronantProtein Groups Files untill further notice
-	# TODO: Can include this output for both SpectronantProteinGroup and DiaNNProteinGroup
+
+	# Below code will be temporary been mark as hidden for the SpectronautProtein Groups Files untill further notice
+	# TODO: Can include this output for both SpectronautProteinGroup and DiaNNProteinGroup
 	# Peptides is represent by the NrofPrecursors
-	
-	if (fileType != "SpectronantProteinGroup" && fileType != "DiaNNProteinGroup"){
+
+	if (fileType != "SpectronautProteinGroup" && fileType != "DiaNNProteinGroup"){
 	#### peptides per protein
   	if(userOptions$verbose) cat("PEPTIDES PER PROTEIN PLOT\n")
   	if(exists("sqaProtein")){
@@ -176,16 +245,16 @@ COLORS <- as.character(c(
   		peptidesPerProtein <- fData(sqaPeptide$eset)$nbPeptides[!fData(sqaPeptide$eset)$isFiltered]
   		peptidesPerProtein <- peptidesPerProtein[unique(names(peptidesPerProtein))]
   	}
-  
-  
-  
+
+
+
   	### discard filtered out proteins
   	peptidesPerProtein <- peptidesPerProtein[peptidesPerProtein > 0]
   	#counts <- max(c(min(peptidesPerProtein,na.rm=T),1),na.rm=T):max(c(max(peptidesPerProtein,na.rm=T),2))
   	xPeptides <- min(peptidesPerProtein,na.rm=T):max(c(max(peptidesPerProtein,na.rm=T),10))
   	yCount <- unlist(lapply(xPeptides,function(t){
   						sum(unlist(peptidesPerProtein) == t,na.rm=T) }))
-  
+
   	yCount[yCount == 0] <- NA
   	plot(xPeptides,yCount,type="n", log="x",xlab="Peptides Per Protein", ylab="Protein Counts")
   	grid()
@@ -193,7 +262,6 @@ COLORS <- as.character(c(
 	}
 	### Id's vs Retention Time
 	if(exists("sqaPeptide") && ("retentionTime"  %in% names(fData(sqaPeptide$eset)))) plotNbIdentificationsVsRT(sqaPeptide$eset)
-
 }
 
 ### some quality control plots
@@ -260,7 +328,8 @@ COLORS <- as.character(c(
 
 #' @export
 .getConditionColors <- function(eset){
-	return(data.frame(colors=as.character(COLORS[1:length(levels(pData(eset)$condition))]), row.names=levels(pData(eset)$condition)))
+  # return(data.frame(colors=as.character(COLORS[1:length(levels(pData(eset)$condition))]), row.names=levels(pData(eset)$condition)))
+  return(data.frame(colors=hue_pal()(length(levels(pData(eset)$condition))), row.names=levels(pData(eset)$condition)))
 }
 
 ### color strip for volcano plot
@@ -496,7 +565,7 @@ plotVolcano <- function(obj
 #' @references NA
 #' @examples print("No examples")
 plotExpDesign <- function(eset, condColors=.getConditionColors(eset),  version="X"){
-  
+
 	### plot ctrl at the bottom
 	pData(eset) <- rbind(pData(eset)[pData(eset)$isControl,],pData(eset)[!pData(eset)$isControl,])
 
@@ -511,7 +580,7 @@ plotExpDesign <- function(eset, condColors=.getConditionColors(eset),  version="
 	}else{
 	  sampleNames <- rownames(pData(eset))
 	}
-	
+
 
 	nbSamples <- nrow(pData(eset))
 
@@ -526,6 +595,7 @@ plotExpDesign <- function(eset, condColors=.getConditionColors(eset),  version="
 	for(condNb in 1:length(conditionNames)){
 
 		condName <- conditionNames[condNb]
+
 		condCol = as.character(condColors[condName,])
 
 		### control condition in  and underline
@@ -537,7 +607,11 @@ plotExpDesign <- function(eset, condColors=.getConditionColors(eset),  version="
 		}
 
 		for(i in sampleNames[as.character(pData(eset)$condition) == condName]){
-			text(4,sampleNb,paste(paste(sampleNb,":",sep=""), i), col=condCol)
+		  r_i <- str_replace(i, "Quantity.", "")
+		  r_i <- str_replace(r_i, ".raw", "")
+		  r_i <- str_replace(r_i, ".PG.Quantity", "")
+
+			text(4,sampleNb,paste(paste(sampleNb,":",sep=""), r_i), col=condCol)
 			sampleNb <- sampleNb + 1
 		}
 	}
@@ -689,8 +763,10 @@ missinValueBarplot <- function(eset, col=as.character(.getConditionColors(eset)[
 	)
 
 	if ("file" %in% colnames(pData(eset))){
-	  sampleNames <- pData(eset)$file
-	  
+	  sampleNames <- str_replace(pData(eset)$file, "Quantity.", "")
+	  sampleNames <- str_replace(sampleNames, ".raw", "")
+	  sampleNames <- str_replace(sampleNames, ".PG.Quantity", "")
+
 	  mtext(sampleNames,side=1,at=bp[,1], las=2, line=0.3,cex=0.9)
 	}else{
 	  mtext(names(d),side=1,at=bp[,1], las=2, line=0.3,cex=0.9)
@@ -745,7 +821,7 @@ barplotMSSignal <- function(eset, col = as.character(.getConditionColors(eset)[p
 			, cex.lab=cex.lab
 			, cex.axis=cex.axis
 			,...)
-	
+
 	if ("file" %in% colnames(pData(eset))){
 	  sbNames <- pData(eset)$file
 	  mtext(sbNames,side=1,at=bp[,1], las=2, line=0.3,cex=cex.names)
@@ -773,7 +849,10 @@ cvBoxplot <- function(eset,col=as.character(.getConditionColors(eset)[unique(pDa
 
 	eset <- eset[!fData(eset)$isFiltered,]
 
-	cv <- getAllCV(eset)
+	# Notes: to get the linear value for the CV box plots, the following was added: -> l2 = FALSE
+	# To get the box plots for the log 2 value the l2 option needs to be removed from the command below
+	cv <- getAllCV(eset, l2 = FALSE)
+
 	### avoid crach when not enough repliocates
 	if(sum(!is.na(cv)) > 0){
 		boxplot(cv*100,yaxt="n",xaxt="n",...)
@@ -1936,7 +2015,7 @@ hClustHeatMap <- function(eset
   if(nrow(expMatrixMC) > 300){
     labRow <- rep("",(nrow(expMatrixMC)))
   }
-
+  colnames(expMatrixMC) <- str_replace(str_replace(colnames(expMatrixMC), "Quantity.", ""), ".raw", "")
   hm <- heatmap.2(as.matrix(expMatrixMC)
                   , col=colorRampPalette(c(colors()[142],"black",colors()[128]))
                   , scale="none"

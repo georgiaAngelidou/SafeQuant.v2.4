@@ -1,6 +1,6 @@
 # TODO: Add comment
 # 
-# Author: erikahrne
+# Author: erikahrne, georgiaAngelidou
 ###############################################################################
 
 ### s3 class for storing p-values, ratios and CVs
@@ -168,7 +168,6 @@ print.safeQuantAnalysis <- function(x, ... ){
 	
 	#@TODO
 	cat("Experimental Design:\n")
-	#print(pData(sqa$eset))
 	cat("\n")
 	
 	cat("\nStatistical Analysis:\n")
