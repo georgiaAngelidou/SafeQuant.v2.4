@@ -29,6 +29,7 @@ suppressWarnings(suppressPackageStartupMessages(library(crayon, quiet=T)))
 
 # Note: Don't add the / or \ after the R folder name. Otherwise it will not access the correct path
 #sourceDirOSX <- ""
+
 sourceDirOSX <- "D:/programming/R-packages/safeQuant/R"
 sourceDirTPP <-  "C:/Proteomics/SafeQuant-master_Geo/R"
 
