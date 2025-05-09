@@ -1,7 +1,7 @@
 Package: SafeQuant
 Type: Package
 Title: A Toolbox for the Analysis of Proteomics Data
-Version: 2.3.5
+Version: 2.4
 Author: Erik Ahrne
 Maintainer: Erik Ahrne <erik.ahrne@unibas.ch>
 Update: Georgia Angelidou <georgia.angelidou@mpi-marburg.mpg.de>
@@ -10,7 +10,7 @@ Description: Tools for the statistical analysis and visualization of (relative
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.2
 Imports:
     limma,
     gplots,
@@ -29,7 +29,10 @@ Imports:
     GO.db,
     UniProt.ws,
     data.table,
-    affy
+    affy,
+	stringr,
+	colorspace,
+	crayon
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

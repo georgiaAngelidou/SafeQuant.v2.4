@@ -17,23 +17,23 @@ option_list <- list(
 			or Scaffold Q+ (Raw Export, for TMT quant) .xls (REQUIRED)",
 		),
 		make_option(c("-o", "--outputDir"), type="character", default=NA,
-				help=paste("I/O:  Results Output Directory ", red$bold("[default FOLDER OF INPUTFILE]"), sep = ""),
+				help=paste("I/O:  Results Output Directory [default FOLDER OF INPUTFILE]", sep = ""),
 		),
 
 		make_option(c("-l", "--resultsFileLabel"), type="character", default="SQ_Results",
-				help=paste("I/O: results file directory ", red$bold("[default %default]"), sep = ""),
+				help=paste("I/O: results file directory [default %default]", sep = ""),
 		),
 
 		make_option(c("-f", "--fastaFile"), type="character", default="",
-				help="I/O:  Protein DB .fasta file " %+% red$bold("[default ./]"),
+				help="I/O:  Protein DB .fasta file [default ./]",
 		),
 
 		make_option(c("-p", "--scaffoldPTMSpectrumReportFile"), type="character", default="",
-				help="I/O:  Scaffold PTM Spectrum Report File " %+% red$bold("[default ./]"),
+				help="I/O:  Scaffold PTM Spectrum Report File[default ./]",
 		),
 
 		make_option(c("-d","--spreadsheetExportDelimiter"), type="integer", default=1,
-		            help="I/O: Spreadsheet Export Delimiter 1) <tab> 2) <,> " %+% red$bold("[default %default]"),
+		            help="I/O: Spreadsheet Export Delimiter 1) <tab> 2) <,> [default %default]",
     ),
 		make_option(c("-s", "--selectedProteinsList"), type="character", default="",
 		            help="I/O: List of Selected proteins to track their abundance through the different condition"),
@@ -45,17 +45,17 @@ option_list <- list(
 
 # FILTER (--F)
 		make_option(c("--FProteinAccessionSelection"), type="character", default=".",
-				help="FILTER: --FP Filter features by Accession Regular Expression " %+% red$bold("[default %default]") %+% " (all features kept)",
+				help="FILTER: --FP Filter features by Accession Regular Expression [default %default] (all features kept)",
 				metavar="Protein Accession Reg. expr."),
 
 		#### peptide analysis specfic
 		make_option(c("--FModificationSelection"), type="character", default="",
-				help="FILTER (LFQ PEP ONLY): --FM Only keep Peptides with modifications matching Regular Expression " %+% red$bold("[default %default]") %+% "
+				help="FILTER (LFQ PEP ONLY): --FM Only keep Peptides with modifications matching Regular Expression [default %default]
 				(all features kept).",
 				metavar="modification name Reg. expr."),
 
 		make_option(c("--FFdrCutoff"), type="double", default=0.01,
-				help="FILTER (LFQ ONLY): --FF Identification level False Discovery Rate Cutoff.  [0-1] " %+% red$bold("[default %default]"),
+				help="FILTER (LFQ ONLY): --FF Identification level False Discovery Rate Cutoff.  [0-1] [default %default]",
 				metavar="Peptide/Protein FDR cutoff"),
 
 #		make_option(c("--FCoefficientOfVarianceMax"), type="double", default=Inf,
@@ -65,37 +65,37 @@ option_list <- list(
 
 		#### peptide analysis specfic
 		make_option(c("--FDeltaMassTolerancePrecursor"), type="character", default="AUTO SET",
-				help="FILTER (LFQ PEP ONLY): --FD Precursor mass Error Range filter (ppm) " %+% red$bold("[default %default]") %+% ".
+				help="FILTER (LFQ PEP ONLY): --FD Precursor mass Error Range filter (ppm)[default %default].
 				Peptide imports ONLY",
 				metavar="Mass Range [x,y]"),
 
 		#### protein analysis specfic
 		make_option(c("--FNumberOfPeptidesPerProteinMin"), type="integer", default=1,
-				help="FILTER: --FN Only include those proteins with at least x identified peptides " %+% red$bold("[default %default]") %+% "
+				help="FILTER: --FN Only include those proteins with at least x identified peptides [default %default]
 				Protein analysis ONLY.",
 				metavar="Number of peptides"),
 
 		#### peptide analysis specfic
 		make_option(c("--FSitesPerPeptide"), type="integer", default=99999,
-				help="FILTER: --FS Max Nb. Modifications Per Peptide " %+% red$bold("[default Inf]") %+% "
+				help="FILTER: --FS Max Nb. Modifications Per Peptide [default Inf]
 						Peptide analysis ONLY.",
 				metavar="Max Number of PTM sites Per Petptide"),
 
 		#### peptide analysis specfic
 		make_option(c("--FLengthPeptide"), type="integer", default=1,
-				help="FILTER: --FL Min Peptide Length (Nb. AA's) " %+% red$bold("[default 1] ") %+% "
+				help="FILTER: --FL Min Peptide Length (Nb. AA's) [default 1]
 						Peptide analysis ONLY.",
 				metavar="Min Peptide Length (>=)"),
 
 		####
 		make_option(c("--FExclusivePeptides"), action="store_true", default=FALSE,
-				help="FILTER: --FE Discard all peptides mapping to multiple protein entries " %+% red$bold("[default %default]") %+% "
+				help="FILTER: --FE Discard all peptides mapping to multiple protein entries [default %default]
 			Note that by default all peptides are used for quantification and assigned to proteins using
 			a Occam's Razor based algorithm.
 				"),
 
 		make_option(c("--FRatioCutOff"), type="double", default=1,
-				help="FILTER: --FR Intensity ratio cut-off. " %+% red$bold("[default %default]"),
+				help="FILTER: --FR Intensity ratio cut-off. [default %default]",
 				metavar="Intensity ratio cutoff"),
 
     make_option(c("--extraOut"), action="store_true", default=FALSE,
@@ -108,7 +108,7 @@ option_list <- list(
 
 		# correct tmt ratios
 		make_option(c("--TAdjustRatios"), action="store_true", default=FALSE,
-				help="TMT: --TA Adjust TMT ratios using calibration mix proteins " %+% red$bold("[default %default]")),
+				help="TMT: --TA Adjust TMT ratios using calibration mix proteins [default %default]"),
 
 # TMT (--T) END
 
@@ -126,13 +126,11 @@ option_list <- list(
 
 
 	make_option(c("--SAnchorProtein"), type="character", default=".",
-			help="STATISTICS: --SA Normalize Intensities by selected protein(s) Regular Expression " %+% "
-			" %+% red$bold("[default %default]") %+% " (use all proteins).",
+			help="STATISTICS: --SA Normalize Intensities by selected protein(s) Regular Expression [default %default] (use all proteins).",
 			metavar="Protein Accession Reg. expr."),
 
   make_option(c("--SMissingValuesImutationMethod"), type="character", default="nDist",
-            help="STATISTICS: --SM 'ppca', 'knn','gMin','lMin','gMean,'lMean', 'nDist', " %+% "
-              " %+% red$bold("[default %default]") %+% " (use all proteins).",
+            help="STATISTICS: --SM 'ppca', 'knn','gMin','lMin','gMean,'lMean', 'nDist', [default %default] (use all proteins).",
             metavar=" ppca: probabilistic pca (+ gMin, if not enough data)
                             knn: k-nearest neighbour (+ gMin, if not enough data)
                             gMin: global minimum
@@ -145,13 +143,13 @@ option_list <- list(
 
   make_option(c("--SNonPairWiseStatTest"), action="store_true", default=FALSE,
             help="STATISTICS: --SN non pairwise eBayes moderated t-statistic p-values.
-              I.e. variance is pooled, per protein/peptide, across all runs of the study " %+% red$bold("[default %default]")),
+              I.e. variance is pooled, per protein/peptide, across all runs of the study [default %default]"),
 
   make_option(c("--SPvalueInclude"), action="store_true", default=FALSE,
-            help="STATISTICS: --SP output eBayes moderated t-statistic p-values " %+% red$bold("[default %default]")),
+            help="STATISTICS: --SP output eBayes moderated t-statistic p-values [default %default]"),
 
 	make_option(c("--SRawDataAnalysis"), action="store_true", default=FALSE,
-			help="STATISTICS: --SR No data normalization " %+% red$bold("[default %default]")),
+			help="STATISTICS: --SR No data normalization [default %default]"),
 
 # STATISTICS (--S) END
 
@@ -162,14 +160,13 @@ option_list <- list(
 					Example: 1,2,3:4,5,6
 					   condition1 (REF) : channel 1,2,3
 					   condition2: channel 4,5,6
-					Note: for 10-plex default is "1,4,7,10:2,5,8:3,6,9"
-					' %+% red$bold('[default %default]')),
+					Note: for 10-plex default is "1,4,7,10:2,5,8:3,6,9" [default %default]'),
 
 	make_option(c("--EProteinQuantOff"), action="store_false", default=TRUE,
-			help='EXPERIMENTAL DESIGN: --EP Disable Protein Level Quantification ' %+% red$bold('[default %default]')),
+			help='EXPERIMENTAL DESIGN: --EP Disable Protein Level Quantification [default %default]'),
 
 	make_option(c("--ECorrelatedSamples "), action="store_true", default=FALSE,
-			help='EXPERIMENTAL DESIGN: --EC Apply "paired" statistical tests ' %+% red$bold('[default %default]')),
+			help='EXPERIMENTAL DESIGN: --EC Apply "paired" statistical tests [default %default]'),
 
 # EXPERIMENTAL DESIGN (--E) END
 
@@ -177,21 +174,21 @@ option_list <- list(
 
 	make_option(c("--PQvalueCutOff"), type="double", default=0.01,
 			help="PDF-REPORT: --PQ Qvalue cut-off used for graphics.
-			High-lighting features with a qval < specified value. [0-1] " %+% red$bold("[default %default]"),
+			High-lighting features with a qval < specified value. [0-1] [default %default]",
 			metavar="Differential expression qvalue cutOff"),
 
 # ADDITIONAL-REPORTS (--A)
 	make_option(c("--ARDataFile"), action="store_true", default=FALSE,
-		help="ADDITIONAL-REPORTS: --AR Save R objects in 'label'.RData file " %+% red$bold("[default %default]")),
+		help="ADDITIONAL-REPORTS: --AR Save R objects in 'label'.RData file [default %default]"),
 
 	make_option(c("--AIbaq"), action="store_true", default=FALSE,
-			help="ADDITIONAL-REPORTS : --AI add iBAQ values to results spreadsheet. " %+% red$bold("[default %default]")),
+			help="ADDITIONAL-REPORTS : --AI add iBAQ values to results spreadsheet. [default %default]"),
 
 	make_option(c("--ATop3"), action="store_true", default=FALSE,
-			help="ADDITIONAL-REPORTS : --AT add Top3 values to results spreadsheet. " %+% red$bold("[default %default]")),
+			help="ADDITIONAL-REPORTS : --AT add Top3 values to results spreadsheet. [default %default]"),
 
 	make_option(c("--AQC"), action="store_true", default=FALSE,
-			help="ADDITIONAL-REPORTS : --AQ adds additional QC plots to .pdf report " %+% red$bold("[default %default]")),
+			help="ADDITIONAL-REPORTS : --AQ adds additional QC plots to .pdf report [default %default]"),
 
 
 
@@ -199,11 +196,11 @@ option_list <- list(
 
 # TEST (peptide analysis specific)
 	make_option(c("-t", "--test"), action="store_true", default=FALSE,
-			help="TEST: test option, include first 2000 entries only " %+% red$bold("[default %default]") %+% "
+			help="TEST: test option, include first 2000 entries only [default %default]
 			Peptide analysis ONLY."),
 # TEST END
 	make_option(c("-v", "--verbose"), action="store_true", default=FALSE,
-			help="Print extra output " %+% red$bold("[default %default]"))
+			help="Print extra output [default %default]")
 	)
 
 #' Read User Specified Command Line Options

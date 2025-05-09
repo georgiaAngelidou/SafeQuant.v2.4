@@ -3,5 +3,5 @@
 # Author: erikahrne
 ###############################################################################
 
-install.packages(c("gplots","seqinr","optparse"))
+install.packages(c("gplots","seqinr","optparse","stringr"))
 

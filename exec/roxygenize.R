@@ -1,6 +1,6 @@
 library(roxygen2)
-load("/Users/ahrnee-adm/dev/R/workspace/SafeQuant/data/kinaseMotif.rda")
-roxygenize("/Users/ahrnee-adm/dev/R/workspace/SafeQuant")
+load("D:programming/R-packages/safeQuant/data/kinaseMotif.rda")
+roxygenize("D:/programming/R-packages/safeQuant")
 cat("DONE \n")
 
 
