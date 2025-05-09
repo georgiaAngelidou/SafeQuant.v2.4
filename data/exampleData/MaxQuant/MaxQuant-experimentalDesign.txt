@@ -1,0 +1,13 @@
+Name	Experiment	Groups	Type
+LFQ intensity Measurement 1	Sample 1	Control	C
+LFQ intensity Measurement 2	Sample 2	Control	C
+LFQ intensity Measurement 3	Sample 3	Control	C
+LFQ intensity Measurement 4	Sample 4	Condition 1	T
+LFQ intensity Measurement 5	Sample 5	Condition 1	T
+LFQ intensity Measurement 6	Sample 6	Condition 1	T
+LFQ intensity Measurement 7	Sample 7	Condition 2	T
+LFQ intensity Measurement 8	Sample 8	Condition 2	T
+LFQ intensity Measurement 9	Sample 9	Condition 2	T
+LFQ intensity Measurement 10	Sample 10	Condition 3	T
+LFQ intensity Measurement 11	Sample 11	Condition 3	T
+LFQ intensity Measurement 12	Sample 12	Condition 3	T
