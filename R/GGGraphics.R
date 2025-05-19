@@ -175,7 +175,7 @@ plotSelectedProteins <- function(sqa, proteinList , isAdjusted=T , ...){
 
 
   t_df_line <- cbind(exprs(sqa$eset),fData(sqa$eset)[,c("proteinName", "geneName")])
-  t_df_line_melt = melt(t_df_line)
+  t_df_line_melt = reshape2.melt(t_df_line)
   t_df_line_melt$variable <- pData(sqa$eset)[t_df_line_melt$variable, 'c_Name']
   t_exp_type=as.character(t_df_line_melt$variable)
   t_exp_type=substr(t_exp_type,1,nchar(t_exp_type)-2)
@@ -218,7 +218,7 @@ plotSelectedProteins <- function(sqa, proteinList , isAdjusted=T , ...){
 plotSelectedProteins2 <- function(sqa, isAdjusted=T ,...){
 
   t_df_line <- cbind(exprs(sqa$eset),fData(sqa$eset)[,c("proteinName", "geneName")])
-  t_df_line_melt = melt(t_df_line)
+  t_df_line_melt = reshape2.melt(t_df_line)
   t_df_line_melt$variable <- pData(sqa$eset)[t_df_line_melt$variable, 'c_Name']
   t_exp_type=as.character(t_df_line_melt$variable)
   t_exp_type=substr(t_exp_type,1,nchar(t_exp_type)-2)
@@ -267,7 +267,7 @@ plot_violin <- function(eset, fType,... ){
   }
   
   data_df$ID <- rownames(data_df)
-  data_df <- melt(data_df, id = "ID", variable.name = "File", value.name = "Quantity")
+  data_df <- reshape2.melt(data_df, id = "ID", variable.name = "File", value.name = "Quantity")
   data_df$Group <- rep(pData(eset)$condition, each = length(rownames(exprs(eset))))
   if ("file" %in% colnames(pData(eset))){
     data_df$file2 <- str_replace(str_replace(str_replace(rep(pData(eset)$file, each = length(rownames(exprs(eset)))), "Quantity.", ""),".raw", ""), ".PG.Quantity", "")
