@@ -17,7 +17,6 @@ option_list <- list(
 			or Scaffold Q+ (Raw Export, for TMT quant) .xls (REQUIRED)",
 		),
 		make_option(c("-o", "--outputDir"), type="character", default=NA,
-
 				help=paste("I/O:  Results Output Directory [default FOLDER OF INPUTFILE]", sep = ""),
 		),
 
@@ -35,7 +34,6 @@ option_list <- list(
 
 		make_option(c("-d","--spreadsheetExportDelimiter"), type="integer", default=1,
 		            help="I/O: Spreadsheet Export Delimiter 1) <tab> 2) <,> [default %default]",
-
     ),
 		make_option(c("-s", "--selectedProteinsList"), type="character", default="",
 		            help="I/O: List of Selected proteins to track their abundance through the different condition"),
@@ -49,6 +47,7 @@ option_list <- list(
 		make_option(c("--FProteinAccessionSelection"), type="character", default=".",
 				help="FILTER: --FP Filter features by Accession Regular Expression [default %default] (all features kept)",
 				metavar="Protein Accession Reg. expr."),
+
 		#### peptide analysis specfic
 		make_option(c("--FModificationSelection"), type="character", default="",
 				help="FILTER (LFQ PEP ONLY): --FM Only keep Peptides with modifications matching Regular Expression [default %default]
@@ -79,7 +78,7 @@ option_list <- list(
 		#### peptide analysis specfic
 		make_option(c("--FSitesPerPeptide"), type="integer", default=99999,
 				help="FILTER: --FS Max Nb. Modifications Per Peptide [default Inf]
-					Peptide analysis ONLY.",
+						Peptide analysis ONLY.",
 				metavar="Max Number of PTM sites Per Petptide"),
 
 		#### peptide analysis specfic
@@ -111,7 +110,6 @@ option_list <- list(
 		make_option(c("--TAdjustRatios"), action="store_true", default=FALSE,
 				help="TMT: --TA Adjust TMT ratios using calibration mix proteins [default %default]"),
 
-
 # TMT (--T) END
 
 # STATISTICS (--S)
@@ -130,6 +128,7 @@ option_list <- list(
 	make_option(c("--SAnchorProtein"), type="character", default=".",
 			help="STATISTICS: --SA Normalize Intensities by selected protein(s) Regular Expression [default %default] (use all proteins).",
 			metavar="Protein Accession Reg. expr."),
+
   make_option(c("--SMissingValuesImutationMethod"), type="character", default="nDist",
             help="STATISTICS: --SM 'ppca', 'knn','gMin','lMin','gMean,'lMean', 'nDist', [default %default] (use all proteins).",
             metavar=" ppca: probabilistic pca (+ gMin, if not enough data)
@@ -145,12 +144,12 @@ option_list <- list(
   make_option(c("--SNonPairWiseStatTest"), action="store_true", default=FALSE,
             help="STATISTICS: --SN non pairwise eBayes moderated t-statistic p-values.
               I.e. variance is pooled, per protein/peptide, across all runs of the study [default %default]"),
+
   make_option(c("--SPvalueInclude"), action="store_true", default=FALSE,
             help="STATISTICS: --SP output eBayes moderated t-statistic p-values [default %default]"),
+
 	make_option(c("--SRawDataAnalysis"), action="store_true", default=FALSE,
 			help="STATISTICS: --SR No data normalization [default %default]"),
-
-
 
 # STATISTICS (--S) END
 
@@ -168,7 +167,6 @@ option_list <- list(
 
 	make_option(c("--ECorrelatedSamples "), action="store_true", default=FALSE,
 			help='EXPERIMENTAL DESIGN: --EC Apply "paired" statistical tests [default %default]'),
-
 
 # EXPERIMENTAL DESIGN (--E) END
 
@@ -203,7 +201,6 @@ option_list <- list(
 # TEST END
 	make_option(c("-v", "--verbose"), action="store_true", default=FALSE,
 			help="Print extra output [default %default]")
-
 	)
 
 #' Read User Specified Command Line Options

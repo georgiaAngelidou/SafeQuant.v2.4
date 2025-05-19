@@ -99,7 +99,7 @@ ggVolcanoPlot = function(data=data
 #' @references NA
 #' @examples print("No examples")
 plotAllGGVolcanoes = function(sqa, isAdjusted=T ,...){
-  
+
   # need more than own data feature
   if(nrow(sqa$eset) <= 1 ) return()
 
@@ -250,7 +250,7 @@ plotSelectedProteins2 <- function(sqa, isAdjusted=T ,...){
 
 #' Plots violin for all the conditions
 #' @param eset SafeQuantAnalysis object
-#' @param fType defines from which software the data originally were analyzed 
+#' @param fType defines from which software the data originally were analyzed
 #' @param see ggVolcanoPlot
 #' @return ggplot2 object
 #' @import ggplot2 ggrepel
@@ -265,9 +265,9 @@ plot_violin <- function(eset, fType,... ){
   }else{
     data_df <- as.data.frame(log2(exprs(eset)))
   }
-  
+
   data_df$ID <- rownames(data_df)
-  data_df <- reshape2.melt(data_df, id = "ID", variable.name = "File", value.name = "Quantity")
+  data_df <- melt(data_df, id = "ID", variable.name = "File", value.name = "Quantity")
   data_df$Group <- rep(pData(eset)$condition, each = length(rownames(exprs(eset))))
   if ("file" %in% colnames(pData(eset))){
     data_df$file2 <- str_replace(str_replace(str_replace(rep(pData(eset)$file, each = length(rownames(exprs(eset)))), "Quantity.", ""),".raw", ""), ".PG.Quantity", "")
@@ -288,6 +288,6 @@ plot_violin <- function(eset, fType,... ){
              theme_bw() +
              theme(axis.text.x = element_text(angle = 90, hjust = 1)))
   }
-  
+
 
 }
