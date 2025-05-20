@@ -20,6 +20,8 @@ Imports:
     epiR,
     Biobase,
     ggplot2,
+	reshape2,
+	plotly,
     ggrepel,
     magrittr,
     Hmisc,
