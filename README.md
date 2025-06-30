@@ -15,10 +15,10 @@ Open the R or RStudio and Run the following
 	# information to install SafeQuant
 
 	R> install.packages(c("gplots","seqinr","optparse","stringr"))
- 	R> install.packages("corrplot", "data.table", "epiR", "ggplot2")
-	R> install.packages("ggrepel", "reshape2", "plotly", "magrittr")
- 	R> install.packages("Hmisc", "dplyr", "stringr", "colorspace")
-  	R> install.packages("crayon", "readxl", "hash", "scales", "gridExtra")
+ 	R> install.packages(c("corrplot", "data.table", "epiR", "ggplot2"))
+	R> install.packages(c("ggrepel", "reshape2", "plotly", "magrittr"))
+ 	R> install.packages(c("Hmisc", "dplyr", "stringr", "colorspace"))
+  	R> install.packages(c("crayon", "readxl", "hash", "scales", "gridExtra"))
 	R> install.packages("BiocManager")
 	R> BiocManager::install(c("limma", "affy", 'UniProt.ws', "GO.db", "impute", "pcaMethods","Biobase"))
 	R> install.packages("devtools")
