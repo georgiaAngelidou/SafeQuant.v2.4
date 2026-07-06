@@ -165,7 +165,7 @@ option_list <- list(
 	make_option(c("--EProteinQuantOff"), action="store_false", default=TRUE,
 			help='EXPERIMENTAL DESIGN: --EP Disable Protein Level Quantification [default %default]'),
 
-	make_option(c("--ECorrelatedSamples "), action="store_true", default=FALSE,
+	make_option(c("--ECorrelatedSamples"), action="store_true", default=FALSE,
 			help='EXPERIMENTAL DESIGN: --EC Apply "paired" statistical tests [default %default]'),
 
 # EXPERIMENTAL DESIGN (--E) END
