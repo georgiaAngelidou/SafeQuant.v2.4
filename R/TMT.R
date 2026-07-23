@@ -1,6 +1,6 @@
 # TODO: Add comment
 # 
-# Author: erikahrne
+# Author: erikahrne, georgiaAngelidou
 ###############################################################################
 
 CALIBMIXRATIOS <- list()

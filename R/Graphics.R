@@ -1,6 +1,6 @@
 # TODO: Add comment
 #
-# Author: erikahrne
+# Author: erikahrne, georgiaAngelidou
 ###############################################################################
 
 ### SET COLOR VECTOR
@@ -43,9 +43,8 @@ COLORS <- as.character(c(
 #text(0.5,2,paste("FDR",fdr),cex=cex, pos=4)
 	xPos <- -0.5
 	yPos <- 1
-
 	 # Here is the area which is aply for the MaxQuant
-	if(fileType != "ProgenesisProtein" & fileType != "MaxQuantProteinGroup" & fileType != "SpectronautProteinGroup" & fileType != "DiaNNProteinGroup"){
+	if(fileType != "ProgenesisProtein" & fileType != "MaxQuantProteinGroup" & fileType != "SpectronantProteinGroup" & fileType != "DiaNNProteinGroup"){
 	  text(xPos,yPos,paste(nbPSM," PSM"),cex=cex, pos=4)
 	  yPos <- yPos - 0.5
 	}
@@ -125,7 +124,7 @@ COLORS <- as.character(c(
 	  col=as.character(.getConditionColors(eset)[pData(eset)$condition,])
 	  measuredPrecursors <- colSums(fData(sqaPeptide$eset)[!(fData(sqaPeptide$eset)$isFiltered), nrmeasurePrecursors_pc])
 	  names(measuredPrecursors) <- str_replace(str_replace(names(measuredPrecursors), "NrOfPrecursors.", ""), ".raw", "")
-	  measuredPrecursors <- measuredPrecursors[str_replace(str_replace(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", "."), "-", ".")]
+	  measuredPrecursors <- measuredPrecursors[str_replace_all(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", ".")]
 	  bp <- barplot2(measuredPrecursors, ylab = "Total # of Razor and unique peptides", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
 	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
 	}
@@ -137,7 +136,7 @@ COLORS <- as.character(c(
 	  naImpCnt <- nbProteins - naImpCnt
 	  names(naImpCnt) <- str_replace(names(naImpCnt), "NA_IMP_CNT.", "")
 	  names(naImpCnt) <- str_replace(str_replace(pData(sqaProtein$eset)[pData(sqaProtein$eset)$f_pos == names(naImpCnt),]$file, "Quantity.", ""), ".raw", "")
-	  # naImpCnt <- naImpCnt[str_replace(str_replace(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", "."), "-", ".")]
+	  # naImpCnt <- naImpCnt[str_replace_all(str_replace(str_replace(pData(sqaProtein$eset)$file, "Quantity.", ""), ".raw", ""), "-", ".")]
 	  bp <- barplot2(naImpCnt, ylab = "Total # of Measured Proteins", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
 	  mtext(names(measuredPrecursors),side=1,at=bp[,1], line=0.2, las=2,cex=0.6)
 	  bp <- barplot2(naImpCnt2, ylab = "Total # of Imputated Values", col = col, plot.grid = TRUE, xaxt="n", grid.col = "lightgrey")
@@ -232,11 +231,11 @@ COLORS <- as.character(c(
 	}
 
 
-	# Below code will be temporary been mark as hidden for the SpectronautProtein Groups Files untill further notice
-	# TODO: Can include this output for both SpectronautProteinGroup and DiaNNProteinGroup
+	# Below code will be temporary been mark as hidden for the SpectronantProtein Groups Files untill further notice
+	# TODO: Can include this output for both SpectronantProteinGroup and DiaNNProteinGroup
 	# Peptides is represent by the NrofPrecursors
 
-	if (fileType != "SpectronautProteinGroup" && fileType != "DiaNNProteinGroup"){
+	if (fileType != "SpectronantProteinGroup" && fileType != "DiaNNProteinGroup"){
 	#### peptides per protein
   	if(userOptions$verbose) cat("PEPTIDES PER PROTEIN PLOT\n")
   	if(exists("sqaProtein")){

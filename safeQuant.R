@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
 # Author: ahrnee-adm
-# Adaptation: Georgia Angelidou (v.2.4)
+# Adaptation: Georgia Angelidou (v. )
 ###############################################################
 
 ############################################################### INIT ###############################################################
@@ -26,12 +26,12 @@ suppressWarnings(suppressPackageStartupMessages(library(pcaMethods, quiet=T)))
 suppressWarnings(suppressPackageStartupMessages(library(colorspace, quiet=T)))
 suppressWarnings(suppressPackageStartupMessages(library(gridExtra, quiet=T)))
 suppressWarnings(suppressPackageStartupMessages(library(crayon, quiet=T)))
+suppressWarnings(suppressPackageStartupMessages(library(reshape2, quiet=T)))
 
+# TODO: This need to be change according to the location of SafeQuant
 # Note: Don't add the / or \ after the R folder name. Otherwise it will not access the correct path
-#sourceDirOSX <- ""
-sourceDirOSX <- "D:/proteomics/Github/SafeQuant_p/R"
+sourceDirOSX <- "D:/programming/R-packages/safeQuant/R"
 sourceDirTPP <-  "C:/Proteomics/SafeQuant-master_Geo/R"
-
 # first check if dev or tpp mode
 if(file.exists(sourceDirOSX) | file.exists(sourceDirTPP)){
 
@@ -56,13 +56,10 @@ if(file.exists(sourceDirOSX) | file.exists(sourceDirTPP)){
 	stop("SafeQuant Package not installed\n")
 }
 
-rm(sourceDirOSX, sourceDirTPP)
-
-VERSION <- "2.4"
+VERSION <- "2.4.2"
 
 ### USER CMD LINE OPTIONS
 userOptions <- getUserOptions(version=VERSION)
-
 ### USER CMD LINE OPTIONS END
 
 if(userOptions$verbose) print(userOptions$proteinQuant)
@@ -171,7 +168,7 @@ if(fileType %in% c("ProgenesisProtein","ProgenesisFeature","ProgenesisPeptide"))
 		# user specified
 		expDesign <- expDesignTagToExpDesign(userOptions$expDesignTag,data.frame(condition=paste("Condition",1:1000),isControl=c(F,1000)), file=userOptions$inputFile, fileT =fileType)
 		}else{
-		stop(red("Please Specify Experimental Design"))
+		  stop(red("Please Specify Experimental Design"))
 		}
   cat("INFO: PARSING MaxQuant PROTEIN EXPORT FILE ",userOptions$inputFile, "\n" )
 	eset <- parseMaxQuantProteinGroupTxt(userOptions$inputFile,expDesign=expDesign, method="auc", sr_flag = userOptions$SRawDataAnalysis)
@@ -179,15 +176,16 @@ if(fileType %in% c("ProgenesisProtein","ProgenesisFeature","ProgenesisPeptide"))
 
 }else if(fileType == "GenericCSV"){
 
-}else if (fileType == "SpectronautProteinGroup"){
+}else if (fileType == "SpectronantProteinGroup"){
   if(!is.na(userOptions$expDesignTag)){
     expDesign <- expDesignTagToExpDesign(userOptions$expDesignTag,data.frame(condition=paste("Condition",1:1000),isControl=c(F,1000)), file=userOptions$inputFile, fileT=fileType)
   }else{
     stop(red("Please Specify Experimental Design File"))
   }
 
-  cat("INFO: PARSING Spectronaut PROTEIN EXPORT FILE ",userOptions$inputFile, "\n" )
-  eset <- parseSpectronautProteinGroupTxt(userOptions$inputFile,expDesign=expDesign, method="auc")
+  cat("INFO: PARSING Spectronant PROTEIN EXPORT FILE ",userOptions$inputFile, "\n" )
+  eset <- parseSpectronantProteinGroupTxt(userOptions$inputFile,expDesign=expDesign, method="auc")
+#}else if (fileType %in% c("DiaNNProteinGroup", "DIANN_Peptide")){
 }else if (fileType == "DiaNNProteinGroup"){
   if(!is.na(userOptions$expDesignTag) && str_detect(userOptions$expDesignTag, ".txt$")){
     expDesign <- expDesignTagToExpDesign(userOptions$expDesignTag,data.frame(condition=paste("Condition",1:1000),isControl=c(F,1000)), file=userOptions$inputFile, fileT=fileType)
@@ -195,18 +193,20 @@ if(fileType %in% c("ProgenesisProtein","ProgenesisFeature","ProgenesisPeptide"))
     stop(red("Please Specify Experimental Design File"))
   }
 
+  #expDesign <- expDesignTagToExpDesign("D:\\proteomics\\proteomics\\SafeQuant\\SafeQuant-GitHubVersion\\SafeQuant-master_Geo\\Workflow_Info\\Example-experimentalDesignTemplate-EPS-7.txt",data.frame(condition=paste("Condition",1:1000),isControl=c(F,1000)), file="D:\\proteomics\\proteomics\\SafeQuant\\SafeQuant-GitHubVersion\\SafeQuant-master_Geo\\Workflow_Info\\report-SafeQuant_processed.tsv", fileT="DiaNNProteinGroup")
   cat("INFO: PARSING Dia-NN PROTEIN EXPORT FILE ",userOptions$inputFile, "\n" )
   eset <- parseDiaNNProteinGroupTxt(userOptions$inputFile,expDesign=expDesign, method="auc")
-
+  #eset <- parseDiaNNProteinGroupTxt("D:\\proteomics\\proteomics\\SafeQuant\\SafeQuant-GitHubVersion\\SafeQuant-master_Geo\\Workflow_Info\\report-SafeQuant_processed.tsv",expDesign=expDesign, method="auc")
 }else if (fileType == "DIANN_Peptide"){
   expDesign <- expDesignTagToExpDesign(userOptions$expDesignTag,data.frame(condition=paste("Condition",1:1000),isControl=c(F,1000)), file=userOptions$inputFile, fileT=fileType)
+  #expDesign <- expDesignTagToExpDesign("D:\\proteomics\\proteomics\\SafeQuant\\SafeQuant-GitHubVersion\\SafeQuant-master_Geo\\Workflow_Info\\Example-experimentalDesignTemplate-EPS-7.txt",data.frame(condition=paste("Condition",1:1000),isControl=c(F,1000)), file="D:\\proteomics\\proteomics\\SafeQuant\\SafeQuant-GitHubVersion\\SafeQuant-master_Geo\\Workflow_Info\\report-SafeQuant_processed.tsv", fileT="DiaNNProteinGroup")
   cat("INFO: PARSING Dia-NN PEPTIDE EXPORT FILE ",userOptions$inputFile, "\n" )
+    # gives some general information about the different files all together
   eset <- parseDIANNPeptideMeasurementCsv(file=userOptions$inputFile,expDesign=expDesign, exclusivePeptides=userOptions$FExclusivePeptides)
 
 }else{
 	stop("Unknown File Type", userOptions$inputFile)
 }
-
 
 # test option, limit number of entries
 if(userOptions$test){
@@ -233,6 +233,9 @@ if(userOptions$verbose) print(pData(eset))
 if(userOptions$verbose) print(names(fData(eset)))
 
 #### CREATE FEATURE DATA AND FILTER (pre-rollup)
+
+# Since Spectronant Files are already filter we can skip this area
+# Point we still need the filter column in the final table
 
 # generic
 if (fileType %in% c("DiaNNProteinGroup", "DIANN_Peptide")){
@@ -284,6 +287,7 @@ if("peptide" %in% names(fData(eset))){
 }
 
 if(!("nbPeptides" %in% names(fData(eset))) & fileType %in% c("ProgenesisPeptide", "DIANN_Peptide")){
+  #if(!("nbPeptides" %in% names(fData(eset)))){
   ### set nb peptides per protein
   eset <- setNbPeptidesPerProtein(eset)
 }
@@ -376,7 +380,7 @@ if (userOptions$medianInfo){
 }
 
 if((fileType == "ProgenesisProtein") |  (fileType == "MaxQuantProteinGroup") |
-   (fileType == "SpectronautProteinGroup") | (fileType == "DiaNNProteinGroup")){
+   (fileType == "SpectronantProteinGroup") | (fileType == "DiaNNProteinGroup")){
 	fData(esetNorm)$isFiltered <- fData(esetNorm)$isFiltered  | isDecoy(fData(esetNorm)$proteinName)
 	if (userOptions$log2_i){
 	  sqaProtein <- safeQuantAnalysis(esetNorm, method=statMethod, fcThrs=userOptions$ratioCutOff, log2v = FALSE)
@@ -412,32 +416,28 @@ if((fileType == "ProgenesisProtein") |  (fileType == "MaxQuantProteinGroup") |
 	if(userOptions$TAdjustRatios){
 		cat("WARN: Ratio correction not yet implemented in this anlysis mode \n")
 	}
-  # Geo: here should add the method options and change from median to mean
-	esetPeptide <- rollUp(esetNorm,featureDataColumnName= c("peptide","ptm")) # For progenesis
-	# esetPeptide <- rollUp(esetNorm,featureDataColumnName= c("peptide"))  # For DIA-NN
+  # ToDo: Geo: here should add the method options and change from median to mean
+	#esetPeptide <- rollUp(esetNorm,featureDataColumnName= c("peptide","ptm")) # For progenesis
 
-  # esetPeptide_norm <- rollUp(esetNorm_only, featureDataColumnName= c("peptide"))
+	esetPeptide <- rollUp(esetNorm,featureDataColumnName= c("peptide"))  # For DIA-NN
+
 	# fdr filter
 	# replace qValues by rollUp level qValues ()
 
 	esetPeptide <- addIdQvalues(esetPeptide)
-	# esetPeptide_norm <- addIdQvalues(esetPeptide_norm)
 	if(fileType == "ScaffoldTMT"){
 		fData(esetPeptide)$isFiltered <- fData(esetPeptide)$isFiltered | (fData(esetPeptide)$nbPeptides <  userOptions$minNbPeptidesPerProt)
 	}else{
 		# update filter to exclude peptide level hight qValues
 		fData(esetPeptide)$isFiltered <- fData(esetPeptide)$isFiltered | (fData(esetPeptide)$idQValue > userOptions$fdrCutoff) | (fData(esetPeptide)$nbPeptides <  userOptions$minNbPeptidesPerProt)
-		# fData(esetPeptide_norm)$isFiltered <- fData(esetPeptide_norm)$isFiltered | (fData(esetPeptide_norm)$idQValue > userOptions$fdrCutoff) | (fData(esetPeptide_norm)$nbPeptides <  userOptions$minNbPeptidesPerProt)
 	}
 
 	if(userOptions$proteinQuant){
 		cat("INFO: ROLL-UP PROTEIN LEVEL\n")
 		esetProtein <- rollUp(esetPeptide,featureDataColumnName= c("proteinName"))
-		# esetProtein_norm <- rollUp(esetPeptide_norm,featureDataColumnName= c("proteinName"))
 		# create one for the Row values
 
 		esetProtein <- addIdQvalues(esetProtein)
-		# esetProtein_norm <- addIdQvalues(esetProtein_norm)
 
 		if(fileType == "ScaffoldTMT"){
 			fData(esetProtein)$isFiltered <- fData(esetProtein)$isFiltered | isDecoy(fData(esetProtein)$proteinName) | (fData(esetProtein)$nbPeptides <  userOptions$minNbPeptidesPerProt)
@@ -477,6 +477,7 @@ rm(addIdQvalues, addScaffoldPTMFAnnotations, createExpDesign, createExpressionDa
 # I should also change the name but for know I will leave it like this
 # if(!(exists("sqaPeptide"))){}
 
+# ToDo: Need to clean this
 if(exists("sqaProtein")){
   expset <- exprs(sqaProtein$eset)
   if("rt" %in% statMethod || "quantile" %in% statMethod){
@@ -506,7 +507,7 @@ if(exists("sqaProtein")){
     ext_add_imp_col2 <- names(fData(sqaProtein$eset))[grepl("^NA_IMP_CNT", names(fData(sqaProtein$eset)))]
     na_cnt_info <- fData(sqaProtein$eset)[,ext_add_imp_col2]
 
-    if (fileType == "DiaNNProteinGroup" || fileType == "MaxQuantProteinGroup"){
+    if (fileType == "DiaNNProteinGroup" || fileType == "MaxQuantProteinGroup" || fileType == "DIANN_Peptide"){
       na_cnt_info[na_cnt_info == 1] <- -1
       na_cnt_info[na_cnt_info == 0] <- NA
       na_cnt_info[is.na(na_cnt_info)] <- expset[is.na(na_cnt_info)]
@@ -535,8 +536,7 @@ if(exists("sqaProtein")){
     }
     ext_add_imp_col2 <- names(fData(sqaProtein$eset))[grepl("^NA_IMP_CNT", names(fData(sqaProtein$eset)))]
     na_cnt_info <- fData(sqaProtein$eset)[,ext_add_imp_col2]
-
-    # if(fileType == "DiaNNProteinGroup" && fileType != "MaxQuantProteinGroup" && fileType != "SpectronautProteinGroup"){
+    # if(fileType == "DiaNNProteinGroup" && fileType != "MaxQuantProteinGroup" && fileType != "SpectronantProteinGroup"){
     if(fileType == "DiaNNProteinGroup" || fileType == "ProgenesisPeptide"){
       na_cnt_info[na_cnt_info == 1] <- -1
       na_cnt_info[na_cnt_info == 0] <- NA
@@ -565,13 +565,15 @@ if(exists("sqaProtein")){
         fData(sqaProtein$eset)[,str_replace(colnames(na_cnt_info2), "NA_IMP_CNT.", "NA_Nonnormalize.")] <- na_cnt_info2
       }
     }else if (fileType == "DIANN_Peptide"){
-      na_cnt_info[na_cnt_info > 0] <- -1
-      na_cnt_info[na_cnt_info == 0] <- NA
+
+      na_cnt_info[na_cnt_info == fData(sqaProtein$eset)$nbPeptides] <- -1
+      na_cnt_info[na_cnt_info >= 0] <- NA
       na_cnt_info[is.na(na_cnt_info)] <- expset[is.na(na_cnt_info)]
       na_cnt_info[na_cnt_info == -1] <- NA
-      if (!(userOptions$log2_i)){
-        na_cnt_info <- 2^na_cnt_info
-      }
+      # if (!(userOptions$log2_i)){
+      #   print("25")
+      #   na_cnt_info <- 2^na_cnt_info
+      # }
       # Note: this should be activate if we want the no normalize - no imputated values
       # Note: needed for the future plots
 
@@ -580,14 +582,17 @@ if(exists("sqaProtein")){
         na_cnt_info2 <- sweep(na_cnt_info, 2, gf, FUN="/")
 
       }
-      if(!(userOptions$log2_i)){
-        na_cnt_info <- log2(na_cnt_info)
-        na_cnt_info2 <- log2(na_cnt_info2)
-      }
-      colnames(na_cnt_info2) <- str_replace(colnames(na_cnt_info2), "NA_IMP_CNT.", "NA_Nonnormalize.")
+      # if(!(userOptions$log2_i)){
+      #   print("27")
+      #   na_cnt_info <- log2(na_cnt_info)
+      #   na_cnt_info2 <- log2(na_cnt_info2)
+      # }
       fData(sqaProtein$eset)[,ext_add_imp_col_repl] <- na_cnt_info
-      fData(sqaProtein$eset)[,str_replace(colnames(na_cnt_info2), "NA_IMP_CNT.", "NA_Nonnormalize.")] <- na_cnt_info2
-    }else if (fileType != "MaxQuantProteinGroup" && fileType != "SpectronautProteinGroup"){
+      if (!(userOptions$SRawDataAnalysis)){
+        colnames(na_cnt_info2) <- str_replace(colnames(na_cnt_info2), "NA_IMP_CNT.", "NA_Nonnormalize.")
+        fData(sqaProtein$eset)[,str_replace(colnames(na_cnt_info2), "NA_IMP_CNT.", "NA_Nonnormalize.")] <- na_cnt_info2
+      }
+    }else if (fileType != "MaxQuantProteinGroup" && fileType != "SpectronantProteinGroup"){
       na_cnt_info[na_cnt_info == fData(sqaProtein$eset)[, c('nbPeptides')]] <- -1
       na_cnt_info[na_cnt_info < fData(sqaProtein$eset)[,c('nbPeptides')] & na_cnt_info >= 0] <- NA
       na_cnt_info[is.na(na_cnt_info)] <- expset[is.na(na_cnt_info)]
@@ -610,7 +615,7 @@ if(exists("sqaProtein")){
       }
       fData(sqaProtein$eset)[,ext_add_imp_col_repl] <- na_cnt_info
 
-    }else if (fileType == "SpectronautProteinGroup"){
+    }else if (fileType == "SpectronantProteinGroup"){
       na_cnt_info <- expset
       ext_add_imp_col <- names(fData(sqaProtein$eset))[grepl("PG.NrOfPrecursorsMeasured", names(fData(sqaProtein$eset)))]
       ext_add_imp_col_repl <- sub("\\.PG\\.NrOfPrecursorsMeasured", "\\.Intensity", ext_add_imp_col)
@@ -646,9 +651,9 @@ if(exists("sqaProtein")){
   }
 }
 
-# Temporary Solution for the Spectronaut files
+# Temporary Solution for the Spectronant files
 # Solution is base the assumption that no NA values can been found in the file
-if (fileType != "SpectronautProteinGroup"){
+if (fileType != "SpectronantProteinGroup"){
   # The sqaProtein_noImp is needed to plot the selected proteins plot before the imputated values
   sqaProtein_noImp <- sqaProtein
   ext_add_imp_col <- names(fData(sqaProtein$eset))[grepl("\\.Quantity$", names(fData(sqaProtein$eset)))]
@@ -658,7 +663,6 @@ if (fileType != "SpectronautProteinGroup"){
 }
 if (length(names(fData(sqaProtein$eset))[grepl("^NA_Nonnormalize\\.", names(fData(sqaProtein$eset)))]) > 1 |
     length(names(fData(sqaProtein$eset))[grepl("^Intensity.", names(fData(sqaProtein$eset)))]) > 1){
-
   # The sqaProtein_noImp is needed to plot the selected proteins plot before the imputated values
   sqaProtein_noNorm <- sqaProtein
   if (fileType == "DiaNNProteinGroup" || fileType == "DIANN_Peptide"){
@@ -669,7 +673,6 @@ if (length(names(fData(sqaProtein$eset))[grepl("^NA_Nonnormalize\\.", names(fDat
     expr_noImp <- as.matrix(fData(sqaProtein$eset)[,ext_add_imp_col])
     expr_noImp <- expr_noImp[,c(paste("NA_Nonnormalize.", pData(sqaProtein$eset)$f_pos, sep = ""))]
   }else if(fileType == "MaxQuantProteinGroup"){
-
     ext_add_imp_col <- names(fData(sqaProtein$eset))[grepl("^Intensity.", names(fData(sqaProtein$eset)))]
     expr_noImp <- as.matrix(fData(sqaProtein$eset)[,ext_add_imp_col])
 
@@ -692,7 +695,9 @@ if (length(names(fData(sqaProtein$eset))[grepl("^NA_Nonnormalize\\.", names(fDat
 
 # get the pca plot - possibilite to make it an optional
 pca_flag <- TRUE
+
 # The below code is causing problem with the output plots
+# ToDo: to include Progenesis file and MaxQuant need to fix the bug that is created
 if (pca_flag){
   pc <- pca(sqaProtein$eset, method = "nipals")
   df <- merge(pData(sqaProtein$eset), scores(pc), by = 0)
@@ -708,7 +713,6 @@ if (pca_flag){
 
   pData(sqaProtein$eset) <- df
 }
-
 
 ############################################################### EXPORTS ###############################################################
 cat("INFO: PREPARING EXPORTS","\n")
@@ -731,16 +735,19 @@ userOptions$rDataFilePath <- file.path(userOptions$outputDir, paste(userOptions$
 ############################################################### GRAPHICS ###############################################################
 if (!(userOptions$noPDF)){
 
-  # plot protein or peptide level results
-  if(exists("sqaProtein")){
-  	sqaDisp <- sqaProtein
-  	lab <- "Protein"
-  }else{
-  	sqaDisp <- sqaPeptide
-  	lab <- "Peptide"
-  }
+# plot protein or peptide level results
+if(exists("sqaProtein")){
+	sqaDisp <- sqaProtein
+	lab <- "Protein"
+}else{
+	sqaDisp <- sqaPeptide
+	lab <- "Peptide"
+}
 
-  # Change the column names
+# Change the column names
+# pData(esetNorm)$file <- str_replace(pData(esetNorm)$file, "Quantity.", "")
+# print(pData(esetNorm))
+# quit()
 
   ### only disp. a subset for some plots
   rowSelEset <- 1:nrow(eset) %in% sample(nrow(eset),min(c(2000,nrow(eset))) ,replace=F)
@@ -758,7 +765,6 @@ if (!(userOptions$noPDF)){
 
   #.idOverviewPlots()
   #@ NOT CRAN COMPATIBLE
-
   if(exists("sqaPeptide")){
     sPe <- sqaPeptide
   }else{
@@ -769,12 +775,11 @@ if (!(userOptions$noPDF)){
   }else{
     sPr <- 0
   }
-
   .idOverviewPlots(userOptions=userOptions
-  		,esetNorm=esetNorm
-  		,fileType=fileType
-  		,sqaPeptide= sPe # HACK to pass check
-  		,sqaProtein= sPr # HACK to pass check
+                   ,esetNorm=esetNorm
+                   ,fileType=fileType
+                   ,sqaPeptide= sPe# HACK to pass check
+                   ,sqaProtein= sPr # HACK to pass check
   )
   if(fileType %in% c("ProgenesisFeature","ProgenesisPeptide")){
   	par(mfrow=c(3,2))
@@ -801,7 +806,7 @@ if (!(userOptions$noPDF)){
 
   ### Violin plots ###
 
-  # if (fileType %in% c("DiaNNProteinGroup", "SpectronautProteinGroup", "DIANN_Peptide")){
+  # if (fileType %in% c("DiaNNProteinGroup", "SpectronantProteinGroup", "DIANN_Peptide")){
     par(mfrow=c(2,1), mar=c(4.5,6.1,4.1,6.1))
 
     if(userOptions$SRawDataAnalysis){
@@ -826,11 +831,29 @@ if (!(userOptions$noPDF)){
   par(parDefault)
 
   ### PCA plot
+  #if (pca_flag){
+  #  if(userOptions$verbose) cat("INFO: PCA plot \n")
+  #  par(parDefault)
+  #  plot(ggplot(pData(sqaDisp$eset), aes(PC1, PC2, shape=isControl, color = condition)) +
+  #         geom_point(size = 3) +
+  #         xlab("PC1") +
+  #         ylab("PC2") +
+  #         theme_bw())
+  #}
+
   if (pca_flag){
     if(userOptions$verbose) cat("INFO: PCA plot \n")
     par(parDefault)
-    plot(ggplot(pData(sqaDisp$eset), aes(PC1, PC2, shape=isControl, color = condition)) +
+    if ("file" %in% colnames(pData(sqaDisp$eset))){
+      pData(sqaDisp$eset)$PCALabel <- str_replace(pData(sqaDisp$eset)$file, "Quantity.", "")
+    }else{
+      pData(sqaDisp$eset)$PCALabel <- pData(sqaDisp$eset)$Row.names
+    }
+    plot(ggplot(pData(sqaDisp$eset), aes(PC1, PC2, shape=isControl, color = condition, label=PCALabel)) +
            geom_point(size = 3) +
+           # geom_text(hjust=0, vjust=0) +
+           geom_text_repel() +
+           # geom_label_repel( ) +
            xlab("PC1") +
            ylab("PC2") +
            theme_bw())
@@ -843,7 +866,6 @@ if (!(userOptions$noPDF)){
 
   ### total intensity sum
   # barplotMSSignal(eset)
-  rm(barplotMSSignal)
   par( mar=c(6.5,5.1,2.5,3.1))
   cvBoxplot(sqaDisp$eset)
 
@@ -950,7 +972,7 @@ if (!(userOptions$noPDF)){
   )
 
 
-  ###### Here is were need to change the plot legend for ebayes
+  ###### Here is were need to chnge the plot legend for ebayes
 
   if(userOptions$eBayes){
 
@@ -1085,13 +1107,11 @@ if(exists("sqaPeptide")){
     selFDataCol <- c("peptide","proteinName", "ac","geneName", "proteinDescription", "idScore","idQValue"
                      ,"retentionTime",	"ptm", "nbPtmsPerPeptide",	"nbRolledFeatures" )
   }else{
-    selFDataCol <- c("peptide","proteinName", "ac","geneName", "proteinDescription", "Global.PG.Q.Value","idQValue"
+    selFDataCol <- c("peptide", "Stripped.Sequence", "proteinName", "ac","geneName", "proteinDescription", "Global.PG.Q.Value","idQValue"
                      ,"retentionTime",	"ptm", "nbPtmsPerPeptide",	"nbRolledFeatures", "missCl", "Razor_genes", "Grouped",
                      "Protein.Ids")
 
   }
-
-
 	selFDataCol <-	selFDataCol[selFDataCol %in% names(fData(sqaPeptide$eset))]
 
 	### add modif coord
@@ -1160,7 +1180,6 @@ if(exists("sqaPeptide")){
 	}else{
 	  colnames(expset) <- rownames(expDesign)
 	}
-
 	if (userOptions$log2_i){
 	  expset <- 2^expset
 	  colnames(expset) <- sub("Quantity\\.", "", colnames(expset))
@@ -1169,7 +1188,6 @@ if(exists("sqaPeptide")){
 	  colnames(expset) <- sub("Quantity\\.", "", colnames(expset))
 	  colnames(expset) <- paste(colnames(expset), "Imp_Log2.Quantity", sep=".")
 	}
-
 	expdDesign_file_name_cnv <- gsub("-", '.', sub('Quantity\\.', '', expDesign$file))
 	ext_add_col <- c()
 	# Alternative solution
@@ -1181,7 +1199,6 @@ if(exists("sqaPeptide")){
 	}
 
 	selFDataCol <- c(selFDataCol, ext_add_col)
-
   if ("rt" %in% statMethod || "quantile" %in% statMethod){
     ext_add_imp_col <- names(fData(sqaPeptide$eset))[grepl("^NA_IMP_CNT",names(fData(sqaPeptide$eset)))]
     ext_add_imp_col_repl <- sub('NA_IMP_CNT\\.', '', ext_add_imp_col)
@@ -1259,9 +1276,7 @@ if(exists("sqaPeptide")){
     }
   }
 
-
 	fData(sqaPeptide$eset)[,ext_add_imp_col] <- na_cnt_info
-
 	out <- cbind(
 			fData(sqaPeptide$eset)[,selFDataCol]
 			, expset
@@ -1276,16 +1291,13 @@ if(exists("sqaPeptide")){
 			# , FTestPValue = sqaPeptide$FPValue
 			# , FTestQValue = sqaPeptide$FQValue
 			)[!fData(sqaPeptide$eset)$isFiltered,]
-
 	colnames(out)[colnames(out) %in% ext_add_imp_col] <- ext_add_imp_col_repl
-
 	### add unadjusted ratios if TMT ratio correction
 	if(userOptions$TAdjustRatios){
 		unadjPeptideRatios <- sqaPeptide$unAdjustedRatio[!fData(sqaPeptide$eset)$isFiltered,]
 		names(unadjPeptideRatios) <- paste(names(sqaPeptide$ratio), "log2_unadjRatio", sep=".")
 		out <- cbind(out,unadjPeptideRatios)
 	}
-
 	### paired expDesign ratio export
 	if("subject" %in% names(pData(sqaPeptide$eset))){
 		allRatios <- getRatios(sqaPeptide$eset,method="paired")[!fData(sqaPeptide$eset)$isFiltered,]
@@ -1294,11 +1306,14 @@ if(exists("sqaPeptide")){
 	}
 	if (fileType == "DIANN_Peptide"){
 	  out <- out[,!(colnames(out) %in% c("ac", "idQValue", "missCl", "allAccessions"))]
-	  new_order <- c("peptide", "proteinName", "Protein.Ids", "geneName", "Razor_genes", "proteinDescription", "Global.PG.Q.Value", "retentionTime", "ptm", "nbPtmsPerPeptide")
+	  new_order <- c("peptide", "Stripped.Sequence", "proteinName", "Protein.Ids", "geneName", "Razor_genes", "proteinDescription", "Global.PG.Q.Value", "retentionTime", "ptm", "nbPtmsPerPeptide")
 	  new_order <- c(new_order, names(out)[!(names(out) %in% new_order)])
 	  out <- out[, new_order]
 	}
-
+	data <- read.table(file =  userOptions$inputFile, sep = '\t', header = TRUE, quote = "\"")
+	if ("aa_before" %in% colnames(data)){
+	  out <- LIP_peptide_info_add(out, data)
+	}
 	write.table(out
 			, file=userOptions$peptideReportFilePath
 			, sep=userOptions$sSheetExportDelimiter
@@ -1312,12 +1327,13 @@ if(exists("sqaPeptide")){
 }
 
 if(exists("sqaProtein")){
-
   if ("idScore" %in% colnames(fData(sqaProtein$eset))){
     selFDataCol <- c("proteinName","ac","geneName","proteinDescription","idScore")
   }else if ("Global.PG.Q.Value" %in% colnames(fData(sqaProtein$eset))){
     if("RazorG" %in% colnames(fData(sqaProtein$eset))){
       selFDataCol <- c("proteinName","ac", "RazorP", "geneName", "RazorG", "proteinDescription","Global.PG.Q.Value")
+    }else if ("Razor_genes" %in% colnames(fData(sqaProtein$eset))){
+      selFDataCol <- c("proteinName","ac", "Protein.Ids", "geneName", "Razor_genes", "proteinDescription","Global.PG.Q.Value")
     }else{
       selFDataCol <- c("proteinName","ac","geneName","proteinDescription","Global.PG.Q.Value")
     }
@@ -1332,7 +1348,6 @@ if(exists("sqaProtein")){
 	  fData(sqaProtein$eset)[,"nbPeptides"] <- apply(fData(sqaProtein$eset)[,col_info], 1, max)
 	  selFDataCol <- c(selFDataCol, 'nbPeptides')
 	}
-
   if(fileType == "MaxQuantProteinGroup"){
     col_info <- names(fData(sqaProtein$eset))[grepl("razor_unique_peptides", names(fData(sqaProtein$eset)))]
     selFDataCol <- c(selFDataCol, col_info)
@@ -1342,16 +1357,13 @@ if(exists("sqaProtein")){
     }
     selFDataCol <- c(selFDataCol, col_info)
   }
-
 	selFDataCol <- selFDataCol[selFDataCol %in%  names(fData(sqaProtein$eset))]
-
 	### add allAccessions
 	if("allAccessions" %in% names(fData(sqaProtein$eset))){
 		selFDataCol <- c(selFDataCol,"allAccessions")
 	}
 
 	# add sqa object data
-
 	cv <- sqaProtein$cv
 	names(cv) <- paste(names(cv), "Imp_cv",sep=".")
 	ratio <- sqaProtein$ratio
@@ -1364,7 +1376,6 @@ if(exists("sqaProtein")){
 	if(ncol(qValue) > 0 ) names(qValue) <- paste(names(qValue), "qValue",sep=".")
 	log10_qValue <- -log10(sqaProtein$qValue)     # Added: 26072021
 	if(ncol(log10_qValue) > 0 ) names(log10_qValue) <- paste(" -log10_qValue",names(log10_qValue),sep=".")  # Added: 26072021
-
 	if (userOptions$medianInfo){
 
 	  medianSignalDf <- log2(getSignalPerCondition(sqaProtein$eset))
@@ -1385,7 +1396,6 @@ if(exists("sqaProtein")){
     }
 	}
 	expset <- exprs(sqaProtein$eset)
-
 	expset <- log2(expset)
 
 	if ("file" %in% colnames(expDesign)){
@@ -1401,8 +1411,7 @@ if(exists("sqaProtein")){
 	  colnames(expset) <- sub("Quantity\\.", "", colnames(expset))
 	  colnames(expset) <- paste(colnames(expset), "Imp_Log2.Quantity", sep=".")
 	}
-
-	if (fileType == "SpectronautProteinGroup"){
+	if (fileType == "SpectronantProteinGroup"){
 	  ext_add_col <- names(fData(sqaProtein$eset))[grepl("NrOfPrecursorsMeasured$",names(fData(sqaProtein$eset)))]
 	  selFDataCol <- c(selFDataCol, ext_add_col)
 	  ext_add_col <- names(fData(sqaProtein$eset))[grepl("\\.Intensity",names(fData(sqaProtein$eset)))]
@@ -1425,7 +1434,6 @@ if(exists("sqaProtein")){
 	  #   }
 	  # }
 
-
 	  ext_add_col <- c()
 	  # Alternative solution
 	  if(length(names(fData(sqaProtein$eset))[grepl("^NrOfPrecursorsMeasured\\.",names(fData(sqaProtein$eset)))]) > 0){
@@ -1440,9 +1448,7 @@ if(exists("sqaProtein")){
 	  }
 
 
-
 	  selFDataCol <- c(selFDataCol, ext_add_col)
-
 	  if(length(names(fData(sqaProtein$eset))[grepl("^NrOfRazorPrecursors\\.",names(fData(sqaProtein$eset)))]) > 0){
 	    ex_col_v2 <- c()
 	    for ( name_i in expdDesign_file_name_cnv){
@@ -1452,6 +1458,7 @@ if(exists("sqaProtein")){
 	  }
 
 	}
+
   if(length(names(fData(sqaProtein$eset))[grepl("\\.Quantity$",names(fData(sqaProtein$eset)))]) > 0){
     ext_add_imp_col <- names(fData(sqaProtein$eset))[grepl("\\.Quantity$",names(fData(sqaProtein$eset)))]
     selFDataCol <- c(selFDataCol, ext_add_imp_col)
@@ -1460,9 +1467,6 @@ if(exists("sqaProtein")){
     }
 
   }
-
-
-
 
   if (userOptions$extra_info){
     out <- cbind(
@@ -1501,7 +1505,6 @@ if(exists("sqaProtein")){
 	  colnames(out)[colnames(out) %in% ext_add_imp_col] <- ext_add_imp_col_repl
 	# }
 
-
 	# add median top3
 	if(exists("esetTop3")){
 
@@ -1516,7 +1519,6 @@ if(exists("sqaProtein")){
 
 		out <- cbind(out,tmpOut)
 	}
-
 	# add iBAQ
 	if(exists("esetIBAQ")){
 
@@ -1552,7 +1554,6 @@ if(exists("sqaProtein")){
 		out <- cbind(out,unadjProteinRatios)
 	}
 
-
 	### paired expDesign ratio export
 	if("subject" %in% names(pData(sqaProtein$eset))){
 		allRatios <- getRatios(sqaProtein$eset,method="paired")[!fData(sqaProtein$eset)$isFiltered,]
@@ -1564,13 +1565,11 @@ if(exists("sqaProtein")){
     out <- proteinTable_reformat(userOptions$inputFile, out, peptide_df)
 	}
 
-
 	write.table(out
 			, file=userOptions$proteinReportFilePath
 			, sep=userOptions$sSheetExportDelimiter
 			, row.names=F
 	)
-
 	cat("INFO: CREATED FILE ", userOptions$proteinReportFilePath,"\n")
 }
 rm(expDesign)

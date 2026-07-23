@@ -137,6 +137,9 @@ getAllEBayes <- function(eset=eset, adjust=F, log=T, method="pairwise", adjustFi
     pvalues <- data.frame(fitContrasts$p.value[,caseConditions])
     names(pvalues) <- caseConditions
 
+    #print(head(round(fitContrasts$coefficients[,caseConditions],3) == round(compRatios[,caseConditions],3)))
+    #print(cbind(fitContrasts$coefficients[,caseConditions[1]],compRatios[,caseConditions[1]]))
+
   }else{ 	#### PAIR-WISE COMPARISONS "pairwise" %in% method
 
     ## REASONING
@@ -370,7 +373,8 @@ getRTNormFactors <- function(eset, minFeaturesPerBin=100){
   #print (apply(log2(exprs(eset)),1,mean,na.rm=T))
 
   ratios <- log2(exprs(eset)) - apply(log2(exprs(eset)),1,mean,na.rm=T)
-  
+  #print (head(ratios, 1))
+
   ### get median ratio per minute bin
   roundedRT <- round(fData(eset)$retentionTime)
   rtBin <- sort(unique(round(fData(eset)$retentionTime)))
@@ -466,6 +470,8 @@ getGlobalNormFactors <- function(eset, method="median"){
   sel <- rep(T,nrow(eset))
 
 
+  #print (head(exprs(eset)))
+  #quit()
   ### check if isNormAnchor and isFiltered columns are defined, if -> get normalization factors from nonFiltered anchor proteins
   if(!is.null(fData(eset)$isNormAnchor) & !is.null(fData(eset)$isFiltered)){
 
@@ -536,6 +542,7 @@ sqNormalize <- function(eset, method="global"){
 
   esetNorm <- eset
 
+  #print (esetNorm@experimentData)
   if("global" %in% method){
     globalNormFactors <- getGlobalNormFactors(esetNorm,method=method)
     ### add normalization factors to ExpressionSet
@@ -547,6 +554,8 @@ sqNormalize <- function(eset, method="global"){
   if("rt" %in% method){
 
     rtNormFactors <- getRTNormFactors(esetNorm, minFeaturesPerBin=100)
+    #print (head(rtNormFactors,1))
+    #quit()
     esetNorm <- rtNormalize(esetNorm,rtNormFactors)
 
   }
@@ -588,6 +597,7 @@ getSignalPerCondition <- function(eset,method="median"){
 
   for(cond in conditionNames){
     condMatch <-  cond== pData(eset)$condition
+    #print (exprs(eset))
     perCondSignal <- cbind(perCondSignal,apply(subset(exprs(eset),select=which(condMatch)),1,method,na.rm=T))
   }
   names(perCondSignal) <- conditionNames
@@ -866,6 +876,10 @@ rollUpDT <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinN
 
     #rolledFDataOld <- data.frame(DT[, lapply(.SD, .getFirstEntry), by=idx, .SDcols=selCol],row.names=rownames(rolledAssayData))[,2:(length(selCol)+1)]
     rolledFData <- data.frame(DT[, lapply(.SD, .getFirstEntry), by=idx, .SDcols=selCol],row.names=rownames(rolledAssayData))[,names(fData(eset))]
+
+    #		print(names(rolledFData))
+    #		print("")
+    #		print(names(rolledFDataOld))
   }
 
   ### concatenate allAccessions
@@ -984,6 +998,7 @@ getFTestPValue = function(eset, adjust=F, log=T){
 
   # if no condition has replicates return NA's
   if(max(table(pData(eset)$condition)) == 1){
+    #print ('I am inside in this little loop')
     pValues = rep(NA,nrow(eset))
     names(pValues) = rownames(eset)
     return(pValues)
@@ -1016,6 +1031,10 @@ getFTestPValue = function(eset, adjust=F, log=T){
 #' @references No references
 #' @examples print("No examples")
 rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinName") ){
+
+    # print(geo_df)
+  # print(head(exprs(eset)))
+  # quit()
 
   ### apply filter
   eset <- eset[!fData(eset)$isFiltered,]
@@ -1055,6 +1074,8 @@ rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinNam
 
   ### set peptides per protein
   rolledFData$nbPeptides <- getNbPeptidesPerProtein(eset)[as.character(rolledFData$proteinName)]
+  #print(head(rolledFData))
+
 
   # drop index and rnames columns
   rolledFData = rolledFData[, !(names(rolledFData) %in% c("index","rnames"))   ]
@@ -1075,6 +1096,7 @@ rollUp <- function(eset, method = "sum", 	featureDataColumnName =  c("proteinNam
 
     # add NA intensties if tracked in fData
     df = data.frame(df,  getImputationMatrix(eset), getImputationMatrix(eset,method="count") )
+    #print (df[df$rnames == "AAAEPLIGFFVNTLALR",])
 
     eRP = summarise_all(group_by_(df , .dots="rnames"  ) , funs(sum(.,na.rm=T))  )
 

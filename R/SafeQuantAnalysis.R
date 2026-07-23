@@ -168,6 +168,7 @@ print.safeQuantAnalysis <- function(x, ... ){
 	
 	#@TODO
 	cat("Experimental Design:\n")
+	#print(pData(sqa$eset))
 	cat("\n")
 	
 	cat("\nStatistical Analysis:\n")

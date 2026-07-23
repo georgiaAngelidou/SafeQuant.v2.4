@@ -39,7 +39,7 @@ parseCSV <- function(file=file,expDesign=expDesign){}
 	}else{
 		### fractionated data
 		intStartCol <- grep("Normalized abundance",unlist(strsplit(line1,",")))
-		intEndCol <- grep("ectral counts",unlist(strsplit(line1,",")))-1
+		intEndCol <- grep("Spectral counts",unlist(strsplit(line1,",")))-1
 		nbSamples <- intEndCol - intStartCol + 1
 
 		intStartCol <- intStartCol - nbSamples
@@ -566,8 +566,8 @@ parseProgenesisPeptideMeasurementCsv <- function(file,expDesign=expDesign,	metho
 }
 
 
-#' Parse DIANN Peptide Measurement after using the DIANN_converter
-#' @param file path to DIANN Peptide Conerter csv file
+#' Parse Progenesis Peptide Measurement Csv Export
+#' @param file path to Progenesis Peptide Measurement csv file
 #' @param expDesign experimental design data.frame
 #' @param method auc (area under curve) or spc (spectral count)
 #' @param expressionColIndices default .getProgenesisCsvExpressionColIndices()
@@ -581,12 +581,12 @@ parseProgenesisPeptideMeasurementCsv <- function(file,expDesign=expDesign,	metho
 #' @references NA
 #' @seealso \code{\link[Biobase]{ExpressionSet}}
 #' @examples print("No examples")
+#' 
 parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="auc",
                                                  expressionColIndices = .getProgenesisCsvExpressionColIndices(file, method=method) , exclusivePeptides=F ){
 
   # HACK to please CRAN CHECK "rollUp: no visible binding for global variable "Sequence""
   Grouped <- Sequence <- Score <- resDTIndex <- proteinScore <- Accession <- NULL
-
   ### stop if not all samples labelled with a given condition are assigned as control
   # Example:
   #	condition isControl
@@ -603,37 +603,29 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   # read csv file
   res <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
 
-  # [1] "#"
-  # [2]  "Protein.Group"
-  # [3]  "Protein.Ids"
-  # [4]  "CScore"
-  # [5]  "Protein.Group2"
-  # [6]  "PG_orig"
-  # [7]  "Modified.Sequence"
-  # [8]  "Stripped.Sequence"
-  # [9]  "Protein.Names"
-  # [10]  "Grouped"
-  # [11]  "Genes"
-  # [12]  "Razor_genes"
-  # [13]  "First.Protein.Description"
-  # [14]  "mass"
-  # [15]  "mz"
-  # [16]  "Precursor.Charge"
-  # [17]  "Global.PG.Q.Value"
-  # [18]  "RT"
-  # [19]  "Modification"
-  # [20]  "NrOfPrecursors.EPS-20-1"
-  # [21]  "NrOfPrecursors.EPS-20-2"
-  # [22]  "NrOfPrecursors.EPS-20-3"
-  # [23]  "NrOfPrecursors.EPS-20-4"
-  # [24]  "Quantity.EPS-20-1"
-  # [25]  "Quantity.EPS-20-2"
-  # [26]  "Quantity.EPS-20-3"
-  # [27]  "Quantity.EPS-20-4"
-  # [28]  "missCl"
-
 
   #res <- read.csv(file,skip=2,allowEscapes=T,check.names=F)
+  #	[1] "#"
+  #	[2] "Retention time (min)"
+  #	[3] "Charge"
+  #	[4] "m/z"
+  #	[5] "Measured mass"
+  #	[6] "Mass error (u)"
+  #	[7] "Mass error (ppm)"
+  #	[8] "Score"
+  #	[9] "Sequence"
+  #	[10] "Modifications"
+  #	[11] "Accession"
+  #	[12] "All accessions (for this sequence)"
+  #	[13] "Grouped accessions (for this sequence)"
+  #	[14] "Shared accessions (for this sequence)"
+  #	[15] "Description"
+  #	[16] "Use in quantitation"
+  #	[17] "A15-02164"
+  #	[18] "A15-02164"
+  #	[19] "A15-02164"
+  #	[20] "Mass"
+
   ################################## PROTEIN INFERENCE ##################################
 
   # OCCAMS RAZOR IMPLEMENTATION (HIGHEST SCORING PROTEIN TAKES IT ALL)
@@ -655,7 +647,6 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   # OCCAMS RAZOR IMPLEMENTATION (HIGHEST SCORING PROTEIN/PROTEIN GROUP TAKES IT ALL)
   # NOT COMPATIBLE WITH STANDARD iBAQ AND TOP3 ABSOLUT QUANTIFICATION!
 
-  # DIANN-peptide converter it already apply the OCCAMS RAZOR approach to the data
 
   cat("INFO: ASSIGNING PEPTIDES TO PROTEINS APPLYING OCCAM'S RAZOR \n" )
   #Check that file includes column "Grouped accessions (for this sequence)"
@@ -665,14 +656,14 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   # }
   names(res)[1] <- "Feature"
   # names(res)[grepl("^Grouped",names(res))] <- "Grouped"
-
   res$CScore <- as.numeric(as.character(res$CScore))
   # TODO: change the Genes to the one which contains only one name
+  #print(colnames(res))
   resDT <-  data.table(res,key="Protein.Group")
+  
   resDT$Grouped <- as.character(resDT$Grouped)
   #resDT$"Grouped accessions (for this sequence)" <- as.character(resDT$"Grouped accessions (for this sequence)")
   resDT$Accession <- as.character(resDT$Genes)
-
   # 1) FIND PROTEIN GROUPS.  A PROTEIN GROUP IS A SET OF PROTEINS THAT A) SHARE THE EXACT SAME PEPTIDES.
   # B) All proteins of the group ONLY map to this set of peptides
   # In the Progensis Export "Peptide Measurments", the column "Grouped accessions (for this sequence)"
@@ -726,6 +717,8 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   setkey(resDT,"sequenceCharge")
   #peptideDT <- resDT[, list(allAccessions = paste(unique(Accession),collapse=";")), by = key(resDT)] # could also include groups..
   peptideDT <- resDT[, list(allAccessions = paste(unique(c(unlist(strsplit(Grouped,";")),Protein.Group ) %>% na.omit  ),collapse=";")), by = key(resDT)]
+  # print(peptideDT[peptideDT$Modified.Sequence == "GYMQAANDWR", ])
+  # quit()
   rownames(peptideDT) <- peptideDT$sequenceCharge
 
   # get allProteins of a given peptide
@@ -735,6 +728,7 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   grepl("^Quantity\\.",names(res))
 
   # Note: Geo: at this stage we still have the two lines
+
   # featureDT <- data.table(res,key="Protein.Group")
   expMatrix <- as.matrix(featureDT[,grepl("^Quantity\\.",names(featureDT)),with=FALSE])
   # set 0 features to NA
@@ -758,13 +752,19 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   score[is.na(score)] <- 0
 
   # measuredMass = featureDT$"Measured mass"  %>% as.character  %>% as.numeric
+  # print ('41')
   # massError = featureDT$"Mass error (ppm)"  %>% as.character  %>% as.numeric
+  # print ('42')
   # mz = featureDT$"m/z" %>% as.character  %>% as.numeric
+  # print('43')
   rt = featureDT$"RT" %>% as.character  %>% as.numeric
+  # print ('44')
   # if(is.null(measuredMass) | (length(measuredMass) == 0)){measuredMass <- rep(NA,nrow(expMatrix))}
+  # print ('45')
   # if(is.null(massError) | (length(massError) == 0)){massError <- rep(NA,nrow(expMatrix))}
+  # print ('46')
   # if(is.null(mz) | (length(mz) == 0)){mz <- rep(NA,nrow(expMatrix))}
-
+  # print ('47')
   if(is.null(rt) | (length(rt) == 0)){rt <- rep(NA,nrow(expMatrix))}
 
   # Note: Quick fix of the error with the "2;3" untill further notice 20220923
@@ -776,6 +776,9 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   }else{
     charge =  rep(NA,nrow(expMatrix))
   }
+
+  # print(names(featureDT))
+  # quit()
 
 
   if (length(names(featureDT)[grepl("^NrOfPrecursors\\.",names(featureDT))]) > 0){
@@ -790,6 +793,7 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
     ,proteinDescription=featureDT$First.Protein.Description
     ,geneName=featureDT$Gene
     ,peptide=featureDT$Modified.Sequence
+    ,Stripped.Sequence=featureDT$Stripped.Sequence
     ,Global.PG.Q.Value= featureDT$Global.PG.Q.Value
     ,idScore= score
     # ,mass=measuredMass
@@ -811,6 +815,10 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
 
   if ("missCl" %in% names(res)){
     vector3 <- c('missCl', 'Razor_genes', 'Protein.Ids', 'Grouped')
+    averMatrix2 <- featureDT[,..vector3]
+    featureAnnotations <- cbind(featureAnnotations, averMatrix2)
+  }else if ("Razor_genes" %in% names(res)){
+    vector3 <- c('Razor_genes', 'Protein.Ids')
     averMatrix2 <- featureDT[,..vector3]
     featureAnnotations <- cbind(featureAnnotations, averMatrix2)
   }
@@ -858,9 +866,135 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
   #	}
 
   colnames(expMatrix) <- rownames(expDesign)
-
+  # Note: Geo: still the same here
   return(createExpressionDataset(expressionMatrix=expMatrix,expDesign=expDesign,featureAnnotations=featureAnnotations))
 }
+
+
+
+
+
+#parseProgenesisPeptideMeasurementCsv2 <- function(file,expDesign=expDesign,	method="auc" ){
+#
+#	### stop if not all samples labelled with a given condition are assigned as control
+#	# Example:
+#	#	condition isControl
+#	#	A11.09066 Condition 1      TRUE
+#	#	A11.09067 Condition 1     FALSE
+#	#	A11.09068 Condition 1     FALSE
+#	#	A11.09070 Condition 2     FALSE
+#	#	A11.09071 Condition 2     FALSE
+#	#	A11.09072 Condition 2     FALSE
+#	if(length(unique(expDesign$condition))  == length(unique(expDesign[!expDesign$isControl,]$condition))){
+#		stop("Invalid Exp. Design")
+#	}
+#
+#	# read csv file
+#	res <- read.csv(file,skip=2,allowEscapes=T,check.names=F)
+#	#	[1] "#"
+##	[2] "Retention time (min)"
+##	[3] "Charge"
+##	[4] "m/z"
+##	[5] "Measured mass"
+##	[6] "Mass error (u)"
+##	[7] "Mass error (ppm)"
+##	[8] "Score"
+##	[9] "Sequence"
+##	[10] "Modifications"
+##	[11] "Accession"
+##	[12] "All accessions (for this sequence)"
+##	[13] "Grouped accessions (for this sequence)"
+##	[14] "Shared accessions (for this sequence)"
+##	[15] "Description"
+##	[16] "Use in quantitation"
+##	[17] "A15-02164"
+##	[18] "A15-02164"
+##	[19] "A15-02164"
+##	[20] "Mass"
+#
+#	expMatrix <- as.matrix(res[,.getProgenesisCsvExpressionColIndices(file, method=method)])
+#
+#	# set 0 features to NA
+#	expMatrix[expMatrix == 0] <- NA
+#	# discard features where all intensities are NA (i.e. 0)
+#	allColNA <-  as.vector(apply(expMatrix,1,function(r){ return(sum(!is.na(r)) == 0)}))
+#
+#	### Mass filed missing in old Progenesis Feature export
+#	if(is.null(res$Mass)){res$Mass <- rep(NA,nrow(expMatrix))}
+#
+#	# added
+#	ptm <- res[,"Modifications"]
+#	nbPtmsPerPeptide <- unlist(lapply(ptm,function(t){
+#						t <- as.character(t)
+#						return(sum(unlist(gregexpr("\\|",t)[[1]]) > 0) + (nchar(t) > 0)  )}))
+#
+#	if("All accessions (for this sequence)"  %in% names(res)){
+#		protein <- res[,"All accessions (for this sequence)"]
+#	}else{
+#		cat("WARN: All accessions per Peptide were not exported \n")
+#		protein <- res[,"Accession"]
+#	}
+#
+#	suppressWarnings(score <- as.numeric(as.character(res$Score)))
+#	### non scored entries are assigned a score of zero
+#	score[is.na(score)] <- 0
+#
+#	# sort protein accessions
+##	protein <- as.character(protein)
+##	protein <- as.vector(unlist(lapply(protein, function(prot){
+##
+##								prot <- paste(sort(as.vector(unlist(strsplit(prot,";")))),collapse=";")
+##								return(prot)
+##
+##							}  )))
+#
+#	featureAnnotations <- data.frame(
+#			proteinName=protein
+#			,proteinDescription=res$Description
+#			,peptide=res$Sequence
+#			,idScore= score
+#			,mass=res[,"Measured mass"]
+#			,pMassError=res[,"Mass error (ppm)"]
+#			,mz=res[,"m/z"]
+#			,retentionTime=res[,"Retention time (min)"]
+#			,charge=as.numeric(res$Charge)
+#			,ptm=ptm
+#			,isNormAnchor=rep(T,nrow(expMatrix))
+#			,isFiltered=rep(F,nrow(expMatrix))
+#			#		,row.names=res$Accession
+#			# added
+#			,nbPtmsPerPeptide = nbPtmsPerPeptide
+#	)
+#
+#	### strip off added .1  A11.03216.1 -> A11.03216
+#	#colnames(expMatrix) <- gsub("\\.1$","",colnames(expMatrix))
+#	## @TODO what if "X001_Yewtivya" "001_Yewtivya"
+#	#grepl("X[0-9]",colnames(expMatrix))
+#
+#	### re-order and exclude channels
+#	#expMatrix <- expMatrix[,rownames(expDesign)]
+#
+#	#return(createExpressionDataset(expressionMatrix=expMatrix[!allColNA,],expDesign=expDesign,featureAnnotations=featureAnnotations[!allColNA,]))
+#
+#	# discard non peptide annotated rows
+#	isPep <- nchar(as.character(featureAnnotations$peptide)) > 0
+#	featureAnnotations <- data.frame(featureAnnotations)[!allColNA & isPep,]
+#
+#	### strip off added .1  A11.03216.1 -> A11.03216
+#	#colnames(expMatrix) <- gsub("\\.1$","",colnames(expMatrix))
+#
+#	### re-order and exclude channels
+#	if(ncol(expMatrix) > 1){
+#		expMatrix <- as.matrix(expMatrix[!allColNA & isPep,rownames(expDesign)])
+#	}else{ # to avoid crash when only one run
+#		expMatrix <- as.matrix(expMatrix[!allColNA & isPep,])
+#	}
+#
+#	colnames(expMatrix) <- rownames(expDesign)
+#
+#	return(createExpressionDataset(expressionMatrix=expMatrix,expDesign=expDesign,featureAnnotations=featureAnnotations))
+#}
+
 
 ################################## LFQ END ##############################
 
@@ -893,6 +1027,7 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
 
 
 ### get file type
+# Geo: Information about the type of the file
 #' @export
 .getFileType <- function(file){
   # geo Change
@@ -913,9 +1048,9 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
     		){
     	return("MaxQuantProteinGroup")
     }else if (sum(grepl(".*MS2Quantity$", names(read.csv(file, nrows = 1, sep=",")))) > 0){
-       return("SpectronautProteinGroup")
+       return("SpectronantProteinGroup")
     }else if (sum(grepl(".*Quantity$", names(read.csv(file, sep=",")))) > 0){
-      return("SpectronautProteinGroup")
+      return("SpectronantProteinGroup")
     }else if(F){
     	return("GenericCSV")
     }else{
@@ -930,9 +1065,11 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
 	    return("Unknown")
 	  }
 	}else if (f_info == "xlsx"){
-	  return("SpectronautProteinGroup")
+	  return("SpectronantProteinGroup")
 	}else if (f_info == "tsv"){
-	  #res <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
+	  # Original line that now gives error
+	   # res <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
+    #res <- read.table(file = file, sep = '\t', header = TRUE)
 	  if(sum(grepl("NrOfPrecursorsMeasured",names(read.table(file = file, sep = '\t', header = TRUE, quote = "\"")))) > 0){
 	    return("DiaNNProteinGroup")
 	  }else if(sum(grepl("NrOfFullyPeptides",names(read.table(file = file, sep = '\t', header = TRUE, quote = "\"")))) > 0){
@@ -943,6 +1080,26 @@ parseDIANNPeptideMeasurementCsv <- function(file,expDesign=expDesign,	method="au
 	}
 }
 
+.getFileType2 <- function(file){
+  # geo Change
+  f_info <- gsub(".*\\.", "", file)
+  data <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
+  
+  if (f_info == 'csv'){
+    break
+  }else if (f_info == "txt"){
+    break
+  }else if (f_info == "xlsx"){
+    return("SpectronantProteinGroup")
+  }else if (f_info == "tsv"){
+    #res <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
+    if(sum(grepl("File_origin",names(data))) > 0){
+      return(data$File_origin[1])
+    }else{
+      return("DIANN_Peptide")
+    }
+  }
+}
 
 #' Parse scaffold output .xls file (RAW export)
 #' @param file path to Scaffold file
@@ -1016,6 +1173,7 @@ parseScaffoldRawFile <- function(file, expDesign=expDesign,keepFirstAcOnly=FALSE
 	### strip off added .1  A11.03216.1 -> A11.03216
 	#colnames(expMatrix) <- gsub("\\.1$","",colnames(expMatrix))
 
+	#print(head(expMatrix))
 
 	eset <- createExpressionDataset(expressionMatrix=expMatrix,expDesign=expDesign,featureAnnotations=featureAnnotations)
 #	#rownames(eset) <- fData(eset)$spectrumName # spectrum names are not always unique (?)
@@ -1036,33 +1194,50 @@ parseScaffoldRawFile <- function(file, expDesign=expDesign,keepFirstAcOnly=FALSE
 #' @references NA
 #' @seealso \code{\link[Biobase]{ExpressionSet}}
 #' @examples print("No examples")
-# parseMaxQuantProteinGroupTxt(userOptions$inputFile,expDesign=expDesign, method="auc",){
-parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc",  sr_flag = FALSE){
+# parseMaxQuantProteinGroupTxt(userOptions$inputFile,expDesign=expDesign, method="auc", sr_flag = userOptions$SRawDataAnalysis)
+parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc", sr_flag = FALSE){
 
 	res <- read.csv(file,allowEscapes=T, check.names=F,sep="\t")
 
 	### get
 	if(sr_flag){
-	 if(method == "auc"){
-	   expMatrix <- as.matrix(res[,grepl("^LFQ",names(res))])
-
-	 }else if(method == "spc"){
-	   expMatrix <- as.matrix(res[,grepl("^MS\\/MS Count",names(res))])
-	 }else{
-	   stop("Unknown parsing method:", method )
-	 }
+	  if(method == "auc"){
+	    expMatrix <- as.matrix(res[,grepl("^LFQ",names(res))])
+	    
+	  }else if(method == "spc"){
+	    expMatrix <- as.matrix(res[,grepl("^MS\\/MS Count",names(res))])
+	  }else{
+	    stop("Unknown parsing method:", method )
+	  }
 	}else{
-	 if(method == "auc"){
-	   expMatrix <- as.matrix(res[,grepl("^Intensity ",names(res))])
-
-	 }else if(method == "spc"){
-	   expMatrix <- as.matrix(res[,grepl("^MS\\/MS Count",names(res))])
-	 }else{
-	   stop("Unknown parsing method:", method )
-	 }
+	  if(method == "auc"){
+	    expMatrix <- as.matrix(res[,grepl("^Intensity ",names(res))])
+	    
+	  }else if(method == "spc"){
+	    expMatrix <- as.matrix(res[,grepl("^MS\\/MS Count",names(res))])
+	  }else{
+	    stop("Unknown parsing method:", method )
+	  }
 	}
 
 
+# 	expcond <- names(res[,grepl("^LFQ",names(res))])
+# 	expDesign$g_name <- ""
+# 	expDesign$c_g <- expDesign$condition
+# 	expDesign$condition <- ''
+#
+# 	l <- 0
+# 	for (i in rownames(expDesign)){
+# 	  l <- l+1
+# 	  #expDesign$'g_name'[as.numeric(i)] <- paste(expDesign$'condition'[as.numeric(i)], substring(expcond[as.numeric(i)], 17, nchar(expcond[as.numeric(i)])-2), sep=" : ")
+# 	  print (str_replace(expcond[as.numeric(i)], "LFQ intensity ", ""))
+# 	  s_r <- str_replace(expcond[as.numeric(i)], "LFQ intensity ", "")
+# 	  expDesign[l, 'condition'] <- str_replace(expcond[as.numeric(i)], "LFQ intensity ", "")
+# 	  l_g <- str_locate_all(s_r, "_")
+# 	  n_g <- nrow(str_locate_all(s_r, "_")[[1]])
+# 	  expDesign[l, 'condition'] <- substring(s_r, 1, l_g[[1]][n_g]-1)
+#   }
+#
 	# set 0 features to NA
 	expMatrix[expMatrix == 0] <- NA
 
@@ -1129,7 +1304,7 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 #	[172] "Oxidation (M) site IDs"
 #	[173] "Oxidation (M) site positions"
 
-
+	
 	if (length(names(res)[grepl("^Razor \\+ unique peptides ",names(res))]) > 0){
 	  averMatrix <- res[,grepl("^Razor \\+ unique peptides ",names(res))]
 	  if("c_Name" %in% names(expDesign)){
@@ -1139,9 +1314,9 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 	  }else{
 	    averMatrix <- averMatrix[, names(averMatrix[as.integer(rownames(expDesign))])]
 	  }
-
+	  
 	}
-
+	
 	if (length((names(res)[grepl("^Intensity ", names(res))])) > 0){
 	  averMatrix2 <- res[,grepl("^Intensity ",names(res))]
 	  if ("c_Name" %in% names(expDesign)){
@@ -1158,10 +1333,12 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 	# notes: make a filter
 	if ('o_pos' %in% colnames(expDesign)){
 	  if( !all(expDesign$f_pos %in% colnames(expMatrix)) ){
+	    #print(expDesign)
 	    stop("Invalid ExpDesign")
 	  }
 	}else{
 	  if( !all(rownames(expDesign) %in% colnames(expMatrix)) ){
+	    #print(expDesign)
 	    stop("Invalid ExpDesign")
 	  }
 
@@ -1170,6 +1347,7 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 	# Geo: 14042021
 	# Need to avoid errors in later steps witht the addIDQvalues
 	res[is.na(res$Reverse), 'Reverse'] <- ""
+	#print (colnames(res))
 
 	featureAnnotations <- data.frame(
 			proteinName=res[,"Protein IDs"]
@@ -1184,7 +1362,7 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 			,isNormAnchor=rep(T,nrow(expMatrix))
 			,isFiltered=res[,"Reverse"] == "+"
 			,row.names=res[,"Protein IDs"])
-
+	
 	featureAnnotations <- cbind(featureAnnotations, averMatrix[,1:length(colnames(averMatrix))])
 	featureAnnotations <- cbind(featureAnnotations, averMatrix2[,1:length(colnames(averMatrix2))])
 	featureAnnotations <- featureAnnotations[!allColNA,]
@@ -1207,8 +1385,8 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 
 ### maxQuant protein group parser
 
-#' Parse Spectronaut Protein Group Txt
-#' @param file path to Spectronaut Protein txt file
+#' Parse Spectronant Protein Group Txt
+#' @param file path to Spectronant Protein txt file
 #' @param expDesign experimental design data.frame
 #' @param method auc (area under curve) or spc (spectral count)
 #' @return ExpressionSet object
@@ -1218,8 +1396,8 @@ parseMaxQuantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="
 #' @references NA
 #' @seealso \code{\link[Biobase]{ExpressionSet}}
 #' @examples print("No examples")
-#'
-parseSpectronautProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc"){
+#' 
+parseSpectronantProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc"){
 
   #res <- read.csv(file,allowEscapes=T, check.names=F,sep="\t", skip=1)
 
@@ -1234,7 +1412,7 @@ parseSpectronautProteinGroupTxt <- function(file=file,expDesign=expDesign, metho
   ### get
   if(method == "auc"){
     expMatrix <- as.matrix(res[,grepl("\\.Quantity$",names(res))])
-    # For the old file Spectronaut reads the columns as text instead of number and the below line fix that problem
+    # For the old file Spectronant reads the columns as text instead of number and the below line fix that problem
     expMatrix <- matrix(as.numeric(expMatrix), ncol = ncol(expMatrix))
 
   }else if(method == "spc"){
@@ -1319,10 +1497,12 @@ parseSpectronautProteinGroupTxt <- function(file=file,expDesign=expDesign, metho
   # notes: make a filter
   if ('o_pos' %in% colnames(expDesign)){
     if( !all(expDesign$f_pos %in% colnames(expMatrix)) ){
+      print(expDesign)
       stop("Invalid ExpDesign")
     }
   }else{
     if( !all(rownames(expDesign) %in% colnames(expMatrix)) ){
+      print(expDesign)
       stop("Invalid ExpDesign")
     }
 
@@ -1384,8 +1564,8 @@ parseSpectronautProteinGroupTxt <- function(file=file,expDesign=expDesign, metho
 
 ### Dia-NN protein group parser
 
-#' Parse DIA-NN files Protein Group Converter tsv
-#' @param file path to DIA-NN Converter tsv file
+#' Parse DIA-NN files Protein Group tsv
+#' @param file path to DIA-NN tsv file
 #' @param expDesign experimental design data.frame
 #' @param method auc (area under curve) or spc (spectral count)
 #' @return ExpressionSet object
@@ -1398,7 +1578,8 @@ parseSpectronautProteinGroupTxt <- function(file=file,expDesign=expDesign, metho
 parseDiaNNProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc"){
 
   #res <- read.csv(file,allowEscapes=T, check.names=F,sep="\t", skip=1)
-
+  # Original line that now is problematic
+  # res <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
   res <- read.table(file = file, sep = '\t', header = TRUE, quote = "\"")
 
 
@@ -1406,7 +1587,7 @@ parseDiaNNProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc
   if(method == "auc"){
     expMatrix <- as.matrix(res[,grepl("^Quantity\\.",names(res))])
 
-    # For the old file Spectronaut reads the columns as text instead of number and the below line fix that problem
+    # For the old file Spectronant reads the columns as text instead of number and the below line fix that problem
     expMatrix <- matrix(as.numeric(expMatrix), ncol = ncol(expMatrix))
 
   # }else if(method == "spc"){
@@ -1416,27 +1597,30 @@ parseDiaNNProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc
   }
 
 
-  # [1]  "#"
-  # [2]  "Protein.Group"
-  # [3]  "Protein.Ids"
-  # [4]  "Protein.Names"
-  # [5]  "RazorP"
-  # [6]  "Genes"
-  # [7]  "RazorG"
-  # [8]  "First.Protein.Description"
-  # [9]  "Global.PG.Q.Value"
-  # [10]  "NrOfPrecursorsMeasured.EPS-20-1"
-  # [11]  "NrOfPrecursorsMeasured.EPS-20-2"
-  # [12]  "NrOfPrecursorsMeasured.EPS-20-3"
-  # [13]  "NrOfPrecursorsMeasured.EPS-20-4"
-  # [14]  "NrOfRazorPrecursors.EPS-20-1"
-  # [15]  "NrOfRazorPrecursors.EPS-20-2"
-  # [16]  "NrOfRazorPrecursors.EPS-20-3"
-  # [17]  "NrOfRazorPrecursors.EPS-20-4"
-  # [18]  "Quantity.EPS-20-1"
-  # [19]  "Quantity.EPS-20-2"
-  # [20]  "Quantity.EPS-20-3"
-  # [21]  "Quantity.EPS-20-4"
+  # name(res)
+  # [1] Protein.Group
+  # [2] Protein.Ids
+  # [3] Protein.Names
+  # [4] Genes
+  # [5] First.Protein.Description
+  # [6] Global.PG.Q.Value
+  # [7] NrOfPrecursorsMeasured.EPS-5-1reDIA.raw
+  # [8] NrOfPrecursorsMeasured.EPS-5-2re-DIA.raw
+  # [9] NrOfPrecursorsMeasured.EPS-5-3re-DIA.raw
+  # [10] NrOfPrecursorsMeasured.EPS-5-4re-DIA.raw
+  # [11] NrOfPrecursorsMeasured.EPS-5-5re-DIA.raw
+  # [12] NrOfPrecursorsMeasured.EPS-5-6re-DIA.raw
+  # [13] NrOfPrecursorsMeasured.EPS-5-7re-DIA.raw
+  # [14] NrOfPrecursorsMeasured.EPS-5-8re-DIA.raw
+  # [15] Quantity.EPS-5-1reDIA.raw
+  # [16] Quantity.EPS-5-2re-DIA.raw
+  # [17] Quantity.EPS-5-3re-DIA.raw
+  # [18] Quantity.EPS-5-4re-DIA.raw
+  # [19] Quantity.EPS-5-5re-DIA.raw
+  # [20] Quantity.EPS-5-6re-DIA.raw
+  # [21] Quantity.EPS-5-7re-DIA.raw
+  # [22] Quantity.EPS-5-8re-DIA.raw
+
 
 
   if (length(names(res)[grepl("^NrOfPrecursorsMeasured\\.",names(res))]) > 0){
@@ -1473,10 +1657,12 @@ parseDiaNNProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc
   # notes: make a filter
   if ('o_pos' %in% colnames(expDesign)){
     if( !all(expDesign$f_pos %in% colnames(expMatrix)) ){
+      print(expDesign)
       stop("Invalid ExpDesign")
     }
   }else{
     if( !all(rownames(expDesign) %in% colnames(expMatrix)) ){
+      print(expDesign)
       stop("Invalid ExpDesign")
     }
 
@@ -1484,6 +1670,7 @@ parseDiaNNProteinGroupTxt <- function(file=file,expDesign=expDesign, method="auc
 
 
   if ("Global.PG.Q.Value" %in% colnames(res)){
+    #print (colnames(res))
     featureAnnotations <- data.frame(
       proteinName=res[,"Protein.Group"]
       ,ac=  res[,"Protein.Names"]

@@ -99,6 +99,7 @@ ggVolcanoPlot = function(data=data
 #' @references NA
 #' @examples print("No examples")
 plotAllGGVolcanoes = function(sqa, isAdjusted=T ,...){
+  # print(as.list(match.call()))
 
   # need more than own data feature
   if(nrow(sqa$eset) <= 1 ) return()
@@ -152,18 +153,6 @@ plotAllGGVolcanoes = function(sqa, isAdjusted=T ,...){
   }
 }
 
-#' Plots the trends of selected proteins from all condition
-#' @param sqa SafeQuantAnalysis object
-#' @param isAdjusted (T/F) plot adjusted pvalues
-#' @param proteinList a list of selevted gene names e.g. c("cbbTC", "cbbL2")
-#' @param see ggVolcanoPlot
-#' @return ggplot2 object
-#' @import ggplot2 ggrepel
-#' @export
-#' @note  No note
-#' @details data.frame input object should contain columns ("ratio","pValue","geneName","ac","cv", "description")
-#' @references NA
-#' @examples print("No examples")
 plotSelectedProteins <- function(sqa, proteinList , isAdjusted=T , ...){
   fun_arg <- as.list(match.call())
   if("title_n" %in% names(fun_arg)){
@@ -175,9 +164,7 @@ plotSelectedProteins <- function(sqa, proteinList , isAdjusted=T , ...){
 
 
   t_df_line <- cbind(exprs(sqa$eset),fData(sqa$eset)[,c("proteinName", "geneName")])
-  t_dt_line <- as.data.table(t_df_line)
-  t_dt_line_melt = data.table.melt(t_dt_line)
-  t_df_line_melt = as.data.frame(t_dt_line_melt)
+  t_df_line_melt = melt(t_df_line)
   t_df_line_melt$variable <- pData(sqa$eset)[t_df_line_melt$variable, 'c_Name']
   t_exp_type=as.character(t_df_line_melt$variable)
   t_exp_type=substr(t_exp_type,1,nchar(t_exp_type)-2)
@@ -206,23 +193,11 @@ plotSelectedProteins <- function(sqa, proteinList , isAdjusted=T , ...){
   plot(p2_line_raw)
 }
 
-#' Plots the trends of selected proteins from all condition
-#' @param sqa SafeQuantAnalysis object
-#' @param isAdjusted (T/F) plot adjusted pvalues
-#' @param see ggVolcanoPlot
-#' @return ggplot2 object
-#' @import ggplot2 ggrepel
-#' @export
-#' @note  No note
-#' @details data.frame input object should contain columns ("ratio","pValue","geneName","ac","cv", "description")
-#' @references NA
-#' @examples print("No examples")
 plotSelectedProteins2 <- function(sqa, isAdjusted=T ,...){
+  # print(as.list(match.call()))
 
   t_df_line <- cbind(exprs(sqa$eset),fData(sqa$eset)[,c("proteinName", "geneName")])
-  t_dt_line <- as.data.table(t_df_line)
-  t_dt_line_melt = data.table.melt(t_dt_line)
-  t_df_line_melt = as.data.frame(t_dt_line_melt)
+  t_df_line_melt = melt(t_df_line)
   t_df_line_melt$variable <- pData(sqa$eset)[t_df_line_melt$variable, 'c_Name']
   t_exp_type=as.character(t_df_line_melt$variable)
   t_exp_type=substr(t_exp_type,1,nchar(t_exp_type)-2)
@@ -252,28 +227,15 @@ plotSelectedProteins2 <- function(sqa, isAdjusted=T ,...){
   plot(p2_line_raw)
 }
 
-#' Plots violin for all the conditions
-#' @param eset SafeQuantAnalysis object
-#' @param fType defines from which software the data originally were analyzed
-#' @param see ggVolcanoPlot
-#' @return ggplot2 object
-#' @import ggplot2 ggrepel
-#' @export
-#' @note  No note
-#' @details data.frame input object should contain columns ("ratio","pValue","geneName","ac","cv", "description")
-#' @references NA
-#' @examples print("No examples")
 plot_violin <- function(eset, fType,... ){
   if (fType %in% c("DIANN_Peptide")){
-    data_df <- as.data.frame(exprs(eset))
+    data_df <- as.data.frame(log2(exprs(eset)))
   }else{
     data_df <- as.data.frame(log2(exprs(eset)))
   }
-
+  
   data_df$ID <- rownames(data_df)
-  data_dt <- as.data.table(data_df)
-  data_df <- data.table.melt(data_dt, id = "ID", variable.name = "File", value.name = "Quantity")
-  data_df <- as.data.frame(data_dt)
+  data_df <- melt(data_df, id = "ID", variable.name = "File", value.name = "Quantity")
   data_df$Group <- rep(pData(eset)$condition, each = length(rownames(exprs(eset))))
   if ("file" %in% colnames(pData(eset))){
     data_df$file2 <- str_replace(str_replace(str_replace(rep(pData(eset)$file, each = length(rownames(exprs(eset)))), "Quantity.", ""),".raw", ""), ".PG.Quantity", "")
@@ -294,6 +256,6 @@ plot_violin <- function(eset, fType,... ){
              theme_bw() +
              theme(axis.text.x = element_text(angle = 90, hjust = 1)))
   }
-
+  
 
 }
